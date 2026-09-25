@@ -1,26 +1,124 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens. One accent colour (teal), semantic colours only for status.
+ * All text/background pairs meet WCAG AA (4.5:1) in both themes.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f5f6f8;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --muted: #eef1f4;
+  --muted-foreground: #4f5d6d;
+  --border: #dde3e9;
+  --input: #cfd7df;
+  --primary: #0a6b63;
+  --primary-foreground: #ffffff;
+  --primary-soft: #e2f3f0;
+  --primary-soft-foreground: #07524c;
+  --success: #166534;
+  --success-soft: #e3f5e8;
+  --warning: #92400e;
+  --warning-soft: #fdf1dc;
+  --danger: #b42318;
+  --danger-soft: #fdeceb;
+  --ring: #0a6b63;
+  --radius: 1rem;
+  color-scheme: light;
+}
+
+.dark {
+  --background: #0b0f14;
+  --foreground: #e7ecf1;
+  --card: #141a22;
+  --card-foreground: #e7ecf1;
+  --muted: #1c2531;
+  --muted-foreground: #9fadbd;
+  --border: #263241;
+  --input: #34414f;
+  --primary: #3ccfbd;
+  --primary-foreground: #04211d;
+  --primary-soft: #0e2f2b;
+  --primary-soft-foreground: #8ee8dc;
+  --success: #4ade80;
+  --success-soft: #0f2a1a;
+  --warning: #fbbf24;
+  --warning-soft: #2e2209;
+  --danger: #f87171;
+  --danger-soft: #331414;
+  --ring: #3ccfbd;
+  color-scheme: dark;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-foreground: var(--primary-soft-foreground);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-ring: var(--ring);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-sm: calc(var(--radius) - 8px);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "tnum" 1;
+  }
+  :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 6px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Leaflet in dark mode: dim the OSM tiles instead of loading a second tile set. */
+.dark .leaflet-tile-pane {
+  filter: brightness(0.7) invert(1) contrast(0.9) hue-rotate(200deg) saturate(0.4);
+}
+.leaflet-container {
+  font-family: var(--font-sans);
+  background: var(--muted);
+}
+.vidare-car-icon {
+  background: transparent;
+  border: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
