@@ -13,6 +13,7 @@ import type {
   RideView,
   UserView,
 } from "@/lib/schemas";
+import { observeApi } from "./embed";
 
 export class ApiError extends Error {
   constructor(
@@ -26,10 +27,11 @@ export class ApiError extends Error {
 }
 
 async function call<T>(path: string, init?: { method?: string; body?: unknown }): Promise<T> {
+  const method = init?.method ?? (init?.body ? "POST" : "GET");
   let res: Response;
   try {
     res = await fetch(`/api${path}`, {
-      method: init?.method ?? (init?.body ? "POST" : "GET"),
+      method,
       headers: init?.body ? { "content-type": "application/json" } : undefined,
       body: init?.body ? JSON.stringify(init.body) : undefined,
       cache: "no-store",
@@ -40,6 +42,7 @@ async function call<T>(path: string, init?: { method?: string; body?: unknown })
   const json = (await res.json().catch(() => null)) as ApiResponse<T> | null;
   if (!json) throw new ApiError("BAD_RESPONSE", "Unexpected response", res.status);
   if (!json.ok) throw new ApiError(json.error.code, json.error.message, res.status, json.error.details);
+  observeApi(method, path, json.data);
   return json.data;
 }
 

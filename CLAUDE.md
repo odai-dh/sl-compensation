@@ -89,6 +89,47 @@ Put this exact object in /lib/core/sl-rules.ts and never hard-code these numbers
   Compensation Rules Reference" (sl.se, read 2026-09-25). SL applies the threshold as "at least 20 minutes"
   (20–39 min → 50 %), so the engine treats 20 min as eligible and 19 min as not eligible.
 - Commands: `npm run dev`, `npm run lint`, `npm run typecheck`, `npm test`.
-- Hidden demo admin: `/admin`. One-click demo: "Start demo" on the welcome screen.
+- Website: `/`. App: `/app` (one-click "Start demo" on its welcome screen). Hidden demo admin: `/admin`.
+
+## Showcase website
+A cinematic, scroll-driven 3D website for the hackathon jury, wrapped around the real app.
+
+- **Routing:** the website is `/` (`app/(site)`); the app lives at `/app/...` (`app/(screens)/app`); the demo admin
+  stays at `/admin`. Embed mode: `/app?embed=1` (or any time the app runs in an iframe) hides the browser-only
+  chrome, adds room for the phone's status bar and fits a 390×844 viewport.
+- **Prompt 7 – foundation:** one fixed R3F `<SiteCanvas/>` behind the page (dynamic import, `ssr:false`,
+  `<Suspense>`, `AdaptiveDpr` + `PerformanceMonitor`). A Zustand scene store (`lib/site/store.ts`) holds
+  `storyT`/`scrollProgress`, `currentChapter` and demo events so DOM and 3D read the same state. Lenis smooth
+  scroll is wired to GSAP ScrollTrigger. The world (`components/site/three`) is procedural: instanced seeded city
+  with a window shader, raised track on pillars, a 4-carriage train, a taxi, GPU rain, a wet reflective street,
+  bloom + vignette + grain.
+- **Prompt 8 – scroll story:** five chapters (on your way home → the train stops → your right → Vidare takes
+  over → SL pays us). The camera flies a Catmull-Rom spline through stations; every visual is a pure function of
+  `storyT` (`lib/site/story.ts`, unit tested), and the chapter text is one paused GSAP timeline seeked to `storyT`,
+  so any scroll speed or direction gives the same frame. Numbers come from `lib/core/sl-rules.ts`. Side dots
+  navigate chapters. Mobile uses a simpler camera path, fewer buildings and no postprocessing.
+- **Prompt 9 – live demo:** the "Try it" section shows `/app?embed=1` in a CSS phone. Typed, Zod-validated,
+  origin-checked `postMessage` events (`lib/embed/events.ts`): app → site `disruptionDetected`,
+  `eligibilityChecked`, `taxiOrdered`, `rideStatusChanged`, `rideCompleted`, `claimStatusChanged` (+ `ready`,
+  `route`, `pointer`); site → app `resetDemo`, `runJury`, `stopJury`, `cursor`. The app derives events from its
+  API traffic (`lib/client/embed.ts`), only in embed mode. The 3D world reacts (train stops, taxi drives in step
+  with the ride, amber burst + toast on payout) and a checklist ticks. **Jury mode** plays the whole flow.
+- **Prompt 10 – details:** custom cursor (taxi over the phone), magnetic buttons, tilt cards, evening→midnight
+  slider, Web Audio sound design (off by default), live "stranded right now" counter (demo data), intro loader,
+  "sl" easter egg, final section with team (edit `lib/site/content.ts`), tech badges and open questions.
+- **Prompt 11 – polish:** tab-hidden pause, instancing, disposal, lazy iframe, `?debug=1` FPS meter, illustrated
+  fallback for no-WebGL/slow devices (`?static=1` forces it), reduced-motion (no flying, no particles),
+  real-DOM text with heading order, OG image, favicon, presentation mode (`P`, arrows).
+
+### Art direction
+- Mood: Stockholm on a late autumn evening. Deep blue-black night, wet streets, warm sodium streetlights,
+  one accent colour for Vidare (warm amber/taxi-yellow `#ffb020`), and a cold signal red (`#ff3b3b`) for the
+  disruption.
+- Style: stylised low-poly, not photoreal. Everything procedural from primitives and custom geometry; no
+  downloaded models, textures or fonts with unclear licences.
+- Typography: Unbounded (display) and Inter (text), both Google Fonts under SIL OFL, self-hosted from the
+  Fontsource npm packages with `next/font/local` so builds and the pitch need no network.
+- Never use SL's logo, name styling or brand colours. SL is mentioned in text only; the footer says
+  "Hackathon concept. Not affiliated with SL."
 
 @AGENTS.md

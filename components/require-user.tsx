@@ -10,7 +10,7 @@ export function useRequireUser() {
   const hydrated = useApp((s) => s.hydrated);
   const userId = useApp((s) => s.userId);
   useEffect(() => {
-    if (hydrated && !userId) router.replace("/welcome");
+    if (hydrated && !userId) router.replace("/app/welcome");
   }, [hydrated, userId, router]);
   return hydrated ? userId : null;
 }

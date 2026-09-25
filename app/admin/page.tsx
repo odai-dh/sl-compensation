@@ -53,7 +53,7 @@ export default function AdminPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" asChild>
-            <Link href="/">
+            <Link href="/app">
               <ArrowLeft aria-hidden /> Open app
             </Link>
           </Button>

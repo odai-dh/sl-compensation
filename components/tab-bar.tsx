@@ -10,9 +10,9 @@ export function TabBar() {
   const t = useT();
   const path = usePathname();
   const tabs = [
-    { href: "/home", label: t("tabs.home"), icon: House },
-    { href: "/claims", label: t("tabs.claims"), icon: FileText },
-    { href: "/profile", label: t("tabs.profile"), icon: User },
+    { href: "/app/home", label: t("tabs.home"), icon: House },
+    { href: "/app/claims", label: t("tabs.claims"), icon: FileText },
+    { href: "/app/profile", label: t("tabs.profile"), icon: User },
   ];
   return (
     <nav

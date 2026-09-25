@@ -1,7 +1,11 @@
 # Architecture
 
 ```
-app/(screens)/…         Phone UI (React client components, one folder per screen)
+app/(site)              Showcase website at "/" (scroll story + live demo)
+components/site/…       Website DOM (chapters, Try it, cursor, sound…) and three/ (the 3D world)
+lib/site/…              Website state (Zustand), pure story math, sound engine, content
+lib/embed/events.ts     Typed postMessage protocol between the website and the embedded app
+app/(screens)/app/…     Phone UI at /app (React client components, one folder per screen)
 app/admin               Hidden demo admin + ledger
 app/api/…               Route handlers = the public API (web today, SwiftUI app tomorrow)
 lib/schemas.ts          Zod schemas for every request and response
@@ -92,3 +96,19 @@ so iOS never re-implements SL's rules.
 - **Persistence**: replace the in-memory store with Postgres; add idempotency keys on booking and payment calls; webhooks instead of polling.
 - **Personal data**: personnummer and receipts are sensitive – encryption at rest, retention rules, DPIA.
 - **Open questions** (see CLAUDE.md): will SL accept third-party claims under fullmakt and pay a third party; do digital taxi receipts count as originals; which taxi partner; revenue model; capital to front up to 1 480 kr per ride.
+
+## Showcase website
+
+- **One canvas.** `SiteCanvas` renders a single fixed R3F canvas behind the page. It is loaded with
+  `next/dynamic` (`ssr: false`), falls back to an illustrated SVG version when WebGL is missing, the context is
+  lost, `PerformanceMonitor` gives up, or `?static=1` is set. Rendering pauses while the tab is hidden.
+- **One source of truth.** Scroll position becomes `storyT` (section index + progress) in the site store.
+  `sceneAt(storyT, demo)` and `cameraT(storyT)` in `lib/site/story.ts` are pure and unit tested; the 3D
+  components read them every frame and the chapter text is a paused GSAP timeline seeked to `storyT`.
+- **Live demo bridge.** The app emits events derived from its own API responses (`lib/client/embed.ts`) only
+  when embedded; the site validates them with Zod and checks `event.origin` and `event.source`. The site sends
+  `resetDemo`, `runJury`, `stopJury` and `cursor`. Jury mode (`lib/client/jury.ts`) drives the real app screens
+  and the demo admin API.
+- **Performance.** Buildings, pillars, lamps and lane markings are instanced; rain is a single GPU-animated
+  line-segment buffer; geometry and materials are disposed on unmount; the iframe loads lazily; mobile gets
+  fewer buildings, no reflections and no postprocessing.

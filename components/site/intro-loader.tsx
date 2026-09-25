@@ -1,0 +1,82 @@
+"use client";
+
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { useSite } from "@/lib/site/store";
+
+const RAIL = "M 40 150 C 160 150, 200 60, 320 60 S 480 150, 600 150 S 760 60, 860 60";
+
+/** The Vidare wordmark drawn as a rail line with a little train running along it. */
+export function IntroLoader() {
+  const loaded = useSite((s) => s.loaded);
+  const reduced = useSite((s) => s.reducedMotion);
+  const [minDone, setMinDone] = useState(false);
+  const [giveUp, setGiveUp] = useState(false);
+
+  useEffect(() => {
+    const a = setTimeout(() => setMinDone(true), reduced ? 300 : 1800);
+    // Never block the page for long, even if the 3D is slow to start.
+    const b = setTimeout(() => setGiveUp(true), 7000);
+    return () => {
+      clearTimeout(a);
+      clearTimeout(b);
+    };
+  }, [reduced]);
+
+  const show = !((loaded && minDone) || giveUp);
+
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          key="loader"
+          role="status"
+          aria-label="Loading the city"
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.8 }}
+          className="fixed inset-0 z-[90] flex flex-col items-center justify-center gap-6 bg-[#070b14]"
+        >
+          <svg viewBox="0 0 900 210" className="w-[min(640px,86vw)]" aria-hidden>
+            <path d={RAIL} fill="none" stroke="#1d2536" strokeWidth={10} strokeLinecap="round" />
+            <motion.path
+              d={RAIL}
+              fill="none"
+              stroke="#ffb020"
+              strokeWidth={3}
+              strokeLinecap="round"
+              strokeDasharray="1 14"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: reduced ? 0 : 1.6, ease: "easeInOut" }}
+            />
+            <g
+              style={{
+                offsetPath: `path("${RAIL}")`,
+                offsetRotate: "auto",
+                animation: reduced ? undefined : "loader-train 1.8s ease-in-out forwards",
+                offsetDistance: reduced ? "100%" : undefined,
+              }}
+            >
+              <rect x={-26} y={-9} width={52} height={18} rx={6} fill="#aeb8c6" />
+              <rect x={-20} y={-5} width={40} height={5} rx={1} fill="#ffc774" />
+              <rect x={24} y={-2} width={4} height={4} fill="#fff2cf" />
+            </g>
+            <text
+              x={450}
+              y={205}
+              textAnchor="middle"
+              className="font-[family-name:var(--font-display)]"
+              fontSize={64}
+              fontWeight={800}
+              fill="#e9eef7"
+              letterSpacing={6}
+            >
+              VIDARE
+            </text>
+          </svg>
+          <p className="text-sm text-[#9aa7bd]">Building Stockholm…</p>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}

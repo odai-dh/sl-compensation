@@ -122,3 +122,42 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Embedded in the showcase site: the site draws its own cursor on top of the phone. */
+@media (pointer: fine) {
+  .embed-no-cursor,
+  .embed-no-cursor * {
+    cursor: none !important;
+  }
+}
+
+@keyframes train {
+  from {
+    transform: translateX(-700px);
+  }
+  to {
+    transform: translateX(2300px);
+  }
+}
+
+/* Showcase site */
+.site-cursor .site-root,
+.site-cursor .site-root * {
+  cursor: none !important;
+}
+.site-root :focus-visible {
+  outline: 3px solid #ffb020;
+  outline-offset: 3px;
+}
+.site-root [data-split] .word-mask {
+  padding-bottom: 0.08em;
+}
+
+@keyframes loader-train {
+  from {
+    offset-distance: 0%;
+  }
+  to {
+    offset-distance: 100%;
+  }
+}

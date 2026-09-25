@@ -13,7 +13,7 @@ export function RideCard({ ride }: { ride: RideView }) {
   const live = ride.status !== "completed" && ride.status !== "cancelled";
   return (
     <Link
-      href={live ? `/ride/${ride.id}` : `/ride/${ride.id}/receipt`}
+      href={live ? `/app/ride/${ride.id}` : `/app/ride/${ride.id}/receipt`}
       className="flex items-center gap-3 rounded-lg border bg-card p-3 transition-colors hover:bg-muted"
     >
       <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary-soft text-primary">

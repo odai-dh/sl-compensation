@@ -14,9 +14,12 @@ npm install
 npm run dev          # http://localhost:3000
 ```
 
-- Open http://localhost:3000 in a phone-sized window (or DevTools device mode).
-- Tap **Start demo** on the welcome screen to skip onboarding, or go through it (BankID mock takes ~3 s).
-- Demo admin: http://localhost:3000/admin (trigger disruptions, move claims, see the ledger, reset).
+- **Showcase website:** http://localhost:3000 – a scroll-driven 3D story with the real app in a phone.
+  Press **P** to present, **Jury mode** to auto-play the demo. `?static=1` forces the illustrated (no-3D)
+  version, `?debug=1` shows an FPS meter.
+- **App:** http://localhost:3000/app in a phone-sized window. Tap **Start demo** to skip onboarding, or go
+  through it (BankID mock takes ~3 s). `/app?embed=1` is the embed mode the website uses.
+- **Demo admin:** http://localhost:3000/admin (trigger disruptions, move claims, see the ledger, reset).
 - Demo card: `4242 4242 4242 4242`. `4000 0000 0000 0002` is declined; `4000 0000 0000 0341` saves but fails at payment.
 
 ## Scripts
@@ -37,4 +40,8 @@ npm run dev          # http://localhost:3000
 - [ARCHITECTURE.md](ARCHITECTURE.md) – layers, adapters, what becomes real in production, API for the iOS app
 
 Stack: Next.js 16 (App Router), TypeScript strict, Tailwind CSS 4, shadcn/ui-style components, Framer Motion,
-Zustand, Zod, react-leaflet + OpenStreetMap, Vitest.
+Zustand, Zod, react-leaflet + OpenStreetMap, Vitest. Website: three.js via React Three Fiber + drei +
+postprocessing, GSAP ScrollTrigger + SplitText, Lenis, Web Audio API.
+
+The team names on the website are placeholders – edit `lib/site/content.ts`. When you deploy, set
+`NEXT_PUBLIC_SITE_URL` so the Open Graph image (`public/og.png`) gets an absolute URL.
