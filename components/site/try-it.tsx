@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, LoaderCircle, PlayCircle, RotateCcw, SquareStop, Zap } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { api } from "@/lib/client/api";
 import { readAppEvent, SITE_SOURCE, type SiteMessage } from "@/lib/embed/events";
 import { scrollToStation } from "@/lib/site/scroll";
 import { useSite } from "@/lib/site/store";
@@ -111,17 +112,11 @@ export function TryIt() {
     if (!claimId) return;
     setPaying(true);
     try {
-      for (const status of ["approved", "paidOut"]) {
-        const res = await fetch(`/api/admin/claims/${claimId}/status`, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ status }),
-        });
-        const json = (await res.json()) as { ok: boolean; data?: { claimedSEK: number } };
-        if (json.ok && status === "paidOut") {
-          useSite.getState().applyAppEvent({ type: "claimStatusChanged", claimId, status: "paidOut", amountSEK: json.data?.claimedSEK ?? 0 });
-        }
-      }
+      await api.admin.setClaimStatus(claimId, "approved");
+      const paid = await api.admin.setClaimStatus(claimId, "paidOut");
+      useSite.getState().applyAppEvent({ type: "claimStatusChanged", claimId, status: "paidOut", amountSEK: paid.claimedSEK });
+    } catch {
+      useSite.getState().showToast("Couldn’t reach SL just now – try again");
     } finally {
       setPaying(false);
     }
@@ -206,7 +201,6 @@ export function TryIt() {
                   width={PHONE_W}
                   height={PHONE_H}
                   className="block border-0"
-                  allow="vibrate"
                 />
               ) : (
                 <div className="flex size-full items-center justify-center text-sm text-[#9aa7bd]">Loading the app…</div>

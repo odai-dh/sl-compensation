@@ -27,6 +27,12 @@ export default function LiveRideScreen() {
   const r = ride.data;
   if (r?.status === "completed" && !completed) setCompleted(true);
 
+  // The ride is gone (the demo world was rebuilt): don't leave a frozen screen behind.
+  const rideGone = ride.error?.status === 404;
+  useEffect(() => {
+    if (rideGone) router.replace("/app/home");
+  }, [rideGone, router]);
+
   // On arrival: a little buzz, then the receipt.
   useEffect(() => {
     if (!completed) return;

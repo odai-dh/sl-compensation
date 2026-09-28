@@ -12,18 +12,11 @@ import * as services from "./services";
 import { emptyStore, getStore, newId, now, nowIso, replaceStore, type User } from "./store";
 
 const DAY = 24 * 60 * 60 * 1000;
-const g = globalThis as unknown as { __vidareSeed?: Promise<void> };
 
-/** Awaited by every route handler: seeds the in-memory store once per server boot. */
-export function ensureSeeded(): Promise<void> {
-  g.__vidareSeed ??= seedAll();
-  return g.__vidareSeed;
-}
-
+/** Rebuilds the current sandbox from scratch (called by withSandbox on a first or stale visit). */
 export async function resetDemo(): Promise<void> {
   replaceStore(emptyStore());
-  g.__vidareSeed = seedAll();
-  await g.__vidareSeed;
+  await seedAll();
 }
 
 /** One click: a fresh store with a fully onboarded user stranded near the Red line. */
@@ -46,7 +39,7 @@ export async function startDemo(): Promise<{ userId: string }> {
   return { userId: user.id };
 }
 
-async function seedAll(): Promise<void> {
+export async function seedAll(): Promise<void> {
   const store = getStore();
   for (const d of seedDisruptions(now())) store.mock.disruptions[d.id] = d;
 

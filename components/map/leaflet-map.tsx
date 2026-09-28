@@ -30,8 +30,12 @@ function FitBounds({ points }: { points: LatLng[] }) {
   useEffect(() => {
     if (fitted.current || points.length === 0) return;
     fitted.current = true;
-    if (points.length === 1) map.setView([points[0].lat, points[0].lng], 14);
-    else map.fitBounds(L.latLngBounds(points.map((p) => [p.lat, p.lng])), { padding: [36, 36] });
+    try {
+      if (points.length === 1) map.setView([points[0].lat, points[0].lng], 14, { animate: false });
+      else map.fitBounds(L.latLngBounds(points.map((p) => [p.lat, p.lng])), { padding: [36, 36], animate: false });
+    } catch {
+      // The map was torn down while the screen was leaving; nothing to fit any more.
+    }
   }, [map, points]);
   return null;
 }

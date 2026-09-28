@@ -91,6 +91,15 @@ Put this exact object in /lib/core/sl-rules.ts and never hard-code these numbers
 - Commands: `npm run dev`, `npm run lint`, `npm run typecheck`, `npm test`.
 - Website: `/`. App: `/app` (one-click "Start demo" on its welcome screen). Hidden demo admin: `/admin`.
 
+## Deployment rules (Netlify, serverless)
+- Never keep demo state in a module-level variable: requests land on different instances. All server state
+  lives in the per-visitor sandbox (`lib/server/sandbox.ts`), reached through `getStore()`, which only works
+  inside `withSandbox()`. Route handlers get this for free by using `handle()`.
+- Every client `fetch` to `/api` must go through `lib/client/api.ts` (it adds the `x-vidare-sandbox` header).
+- API responses are private: keep `Cache-Control: no-store`.
+- After deploying, `/api/health` must report `"storage":"netlify-blobs"`.
+- Don't `pkill -f`/match processes by command text in shell helpers (it kills your own shell); use ports.
+
 ## Showcase website
 A cinematic, scroll-driven 3D website for the hackathon jury, wrapped around the real app.
 

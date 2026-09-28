@@ -112,3 +112,23 @@ so iOS never re-implements SL's rules.
 - **Performance.** Buildings, pillars, lamps and lane markings are instanced; rain is a single GPU-animated
   line-segment buffer; geometry and materials are disposed on unmount; the iframe loads lazily; mobile gets
   fewer buildings, no reflections and no postprocessing.
+
+## State, sandboxes and deployment
+
+The demo has no database, but it must behave on a serverless host where every request may land on a
+different instance. So state is never kept in a module variable:
+
+- `lib/server/sandbox.ts` – `withSandbox(id, fn)` loads the visitor's snapshot, runs `fn` on a private copy
+  (via `AsyncLocalStorage`, see `getStore()` in `lib/server/store.ts`), and writes it back only if something
+  changed **and nobody else wrote meanwhile** (compare-and-swap). On a collision the request re-runs on fresh
+  data, so simultaneous polls can't file the same SL claim twice. If `fn` throws, all its changes are dropped.
+- `lib/server/persistence.ts` – `StoreBackend` (read + compare-and-swap write). Netlify Blobs on Netlify
+  (strong consistency, `onlyIfMatch`/`onlyIfNew`), an in-memory copy everywhere else. Only a "Blobs not
+  configured" error selects the fallback; any other Blobs failure is surfaced.
+- `lib/server/http.ts` – `handle()` reads `x-vidare-sandbox` (no header → one shared public sandbox) and
+  wraps every route in `withSandbox`. Responses are `Cache-Control: no-store`.
+- `lib/client/sandbox.ts` – the id lives in `localStorage`; the website and its iframe share it.
+- `GET /api/health` – reports which backend is active; use it after every deploy.
+
+To go beyond a demo: replace `StoreBackend` with Postgres (rows instead of one JSON blob), keep the
+"one request = one transaction" shape, and add real authentication instead of a sandbox id.

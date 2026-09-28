@@ -18,8 +18,18 @@ const text = localFont({
   display: "swap",
 });
 
+/**
+ * Absolute base for the share image. NEXT_PUBLIC_SITE_URL wins; otherwise Netlify's own build variables
+ * (URL = primary domain, DEPLOY_PRIME_URL = this deploy or preview), then localhost.
+ */
+function siteUrl(): string {
+  const env = process.env;
+  const netlify = env.CONTEXT === "production" ? env.URL : (env.DEPLOY_PRIME_URL ?? env.URL);
+  return env.NEXT_PUBLIC_SITE_URL ?? netlify ?? "http://localhost:3000";
+}
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(siteUrl()),
   title: "Vidare – when SL stops, you still get home",
   description:
     "A hackathon concept: when SL traffic breaks down, Vidare orders and pays your taxi, then claims the cost from SL under a BankID power of attorney. You pay nothing.",

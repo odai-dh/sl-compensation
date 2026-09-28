@@ -1,4 +1,5 @@
 import "server-only";
+import { AsyncLocalStorage } from "node:async_hooks";
 import type { BankIdCompletion, BankIdStatus, Card, LedgerEntry, TaxiBooking, TaxiQuote } from "@/lib/adapters/types";
 import type { ClaimState } from "@/lib/core/claim-machine";
 import type { SLClaimPayload, TaxiReceipt } from "@/lib/core/claim-builder";
@@ -92,6 +93,8 @@ export type Store = {
   /** Shifts the server clock (used when seeding history in the past). */
   timeOffsetMs: number;
   seq: number;
+  /** When this sandbox was seeded (epoch ms). Old sandboxes are re-seeded so "12 min ago" stays true. */
+  seededAt: number;
 };
 
 export function emptyStore(): Store {
@@ -109,19 +112,35 @@ export function emptyStore(): Store {
     app: { users: {}, rides: {}, claims: {} },
     timeOffsetMs: 0,
     seq: 0,
+    seededAt: Date.now(),
   };
 }
 
-const g = globalThis as unknown as { __vidareStore?: Store };
+/**
+ * One request's private copy of a visitor's sandbox. AsyncLocalStorage keeps concurrent requests apart,
+ * so the store can never be shared between visitors (or between two polls of the same visitor).
+ */
+const scope = new AsyncLocalStorage<{ store: Store }>();
 
-/** The in-memory store, shared across route handlers and hot reloads. See seed.ts for seeding. */
-export function getStore(): Store {
-  g.__vidareStore ??= emptyStore();
-  return g.__vidareStore;
+export function runWithStore<T>(store: Store, fn: () => Promise<T>): Promise<{ result: T; store: Store }> {
+  const box = { store };
+  return scope.run(box, async () => {
+    const result = await fn();
+    return { result, store: box.store };
+  });
 }
 
+export function getStore(): Store {
+  const box = scope.getStore();
+  if (!box) throw new Error("getStore() called outside a sandbox – wrap the work in withSandbox()");
+  return box.store;
+}
+
+/** Swaps the whole store for this request (used by "reset demo"). */
 export function replaceStore(store: Store) {
-  g.__vidareStore = store;
+  const box = scope.getStore();
+  if (!box) throw new Error("replaceStore() called outside a sandbox");
+  box.store = store;
 }
 
 export function now(): number {

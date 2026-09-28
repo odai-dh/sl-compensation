@@ -5,7 +5,7 @@ import { Moon, Sunset } from "lucide-react";
 import { useEffect, useState } from "react";
 import { estimateStranded } from "@/lib/site/stranded";
 import { useSite } from "@/lib/site/store";
-import type { DisruptionView } from "@/lib/schemas";
+import { api } from "@/lib/client/api";
 
 /** Drag from evening to midnight: sky, windows and streetlights follow. */
 export function TimeOfDaySlider() {
@@ -39,11 +39,10 @@ export function StrandedCounter() {
     let alive = true;
     const load = async () => {
       try {
-        const res = await fetch("/api/disruptions", { cache: "no-store" });
-        const json = (await res.json()) as { ok: boolean; data: DisruptionView[] };
-        if (!alive || !json.ok) return;
-        setTarget(estimateStranded(json.data, new Date()));
-        setLines(json.data.length);
+        const list = await api.disruptions();
+        if (!alive) return;
+        setTarget(estimateStranded(list, new Date()));
+        setLines(list.length);
       } catch {
         /* keep the last value */
       }

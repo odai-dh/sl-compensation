@@ -14,6 +14,8 @@ import type {
   UserView,
 } from "@/lib/schemas";
 import { observeApi } from "./embed";
+import { getSandboxId } from "./sandbox";
+import { useApp } from "./store";
 
 export class ApiError extends Error {
   constructor(
@@ -32,7 +34,10 @@ async function call<T>(path: string, init?: { method?: string; body?: unknown })
   try {
     res = await fetch(`/api${path}`, {
       method,
-      headers: init?.body ? { "content-type": "application/json" } : undefined,
+      headers: {
+        "x-vidare-sandbox": getSandboxId(),
+        ...(init?.body ? { "content-type": "application/json" } : {}),
+      },
       body: init?.body ? JSON.stringify(init.body) : undefined,
       cache: "no-store",
     });
@@ -41,7 +46,11 @@ async function call<T>(path: string, init?: { method?: string; body?: unknown })
   }
   const json = (await res.json().catch(() => null)) as ApiResponse<T> | null;
   if (!json) throw new ApiError("BAD_RESPONSE", "Unexpected response", res.status);
-  if (!json.ok) throw new ApiError(json.error.code, json.error.message, res.status, json.error.details);
+  if (!json.ok) {
+    // The demo world was rebuilt (or reset elsewhere) while this screen was open: start over cleanly.
+    if (json.error.code === "USER_NOT_FOUND") useApp.getState().signOut();
+    throw new ApiError(json.error.code, json.error.message, res.status, json.error.details);
+  }
   observeApi(method, path, json.data);
   return json.data;
 }

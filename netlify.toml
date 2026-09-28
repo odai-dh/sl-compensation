@@ -1,0 +1,13 @@
+# Netlify picks up the Next.js runtime automatically; this file pins the Node version and the build command.
+[build]
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NEXT_TELEMETRY_DISABLED = "1"
+
+# Long-lived caching for the generated share image and icon (the hashed /_next/static files are handled by Next).
+[[headers]]
+  for = "/og.png"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
