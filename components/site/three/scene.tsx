@@ -50,8 +50,8 @@ function CameraRig({ params, taxiPosition }: { params: { current: SceneParams };
     curves.pos.getPoint(t, tmp.pos);
     curves.target.getPoint(t, tmp.target);
     // Chapter 4: follow the taxi as it drives off.
-    if (params.current.taxiVisible && params.current.taxiU > 0.01) {
-      tmp.target.lerp(taxiPosition.current, 0.45);
+    if (params.current.cameraFollow > 0) {
+      tmp.target.lerp(taxiPosition.current, 0.45 * params.current.cameraFollow);
     }
     if (!reducedMotion) {
       tmp.pos.x += Math.sin(clock.elapsedTime * 0.23) * 0.5;

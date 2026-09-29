@@ -84,6 +84,8 @@ export function StoryChapters() {
       nums.forEach((n) => {
         const to = Number(n.dataset.count);
         const proxy = { v: 0 };
+        // The server renders the final number; start from 0 so it doesn't flash in before counting up.
+        n.textContent = fmt(0);
         tl.fromTo(
           proxy,
           { v: 0 },

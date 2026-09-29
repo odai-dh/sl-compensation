@@ -93,6 +93,8 @@ export type SceneParams = {
   taxiVisible: boolean;
   roofSign: number;
   phoneRise: number;
+  /** 0..1, how much the camera turns to follow the taxi (only while it drives off in ch4). */
+  cameraFollow: number;
   /** 0..1, how much the story overlay dims the scene (money chapter, final). */
   dim: number;
 };
@@ -115,6 +117,7 @@ export function sceneAt(rawT: number, demo: DemoState, pickupU: number): ScenePa
     taxiVisible: false,
     roofSign: 0,
     phoneRise: 0,
+    cameraFollow: 0,
     dim: 0,
   };
 
@@ -135,6 +138,8 @@ export function sceneAt(rawT: number, demo: DemoState, pickupU: number): ScenePa
         local < 0.4 ? easeOutCubic(local / 0.4) * pickupU : local < 0.55 ? pickupU : lerp(pickupU, 1, easeInOutCubic((local - 0.55) / 0.45));
       base.roofSign = smoothstep(0.15, 0.3, local);
       base.phoneRise = smoothstep(0.05, 0.35, local) * (1 - smoothstep(0.85, 1, local));
+      // Eases in as it pulls away and back out before the section ends, so the camera never lurches.
+      base.cameraFollow = smoothstep(0.55, 0.7, local) * (1 - smoothstep(0.85, 1, local));
     }
     if (i === 4) base.dim = smoothstep(0, 0.25, local) * 0.55 * (1 - smoothstep(0.8, 1, local));
     return base;

@@ -96,6 +96,16 @@ describe("scene params", () => {
     expect(sceneAt(3.45, idle, 0.5).roofSign).toBe(1);
   });
 
+  it("ch4: the camera follows the taxi only while it drives off, easing in and out", () => {
+    expect(sceneAt(3.1, idle, 0.5).cameraFollow).toBe(0);
+    expect(sceneAt(3.5, idle, 0.5).cameraFollow).toBe(0);
+    expect(sceneAt(3.78, idle, 0.5).cameraFollow).toBe(1);
+    expect(sceneAt(3.99, idle, 0.5).cameraFollow).toBeLessThan(0.05);
+    expect(sceneAt(4.0, idle, 0.5).cameraFollow).toBe(0);
+    const riding = { disruption: true, taxiOrdered: true, rideProgress: 0.8, rideDone: false };
+    expect(sceneAt(TRY_STATION + 0.3, riding, 0.5).cameraFollow).toBe(0);
+  });
+
   it("try it: follows the demo events", () => {
     expect(sceneAt(TRY_STATION + 0.3, idle, 0.5).signalRed).toBe(false);
     const stuck = sceneAt(TRY_STATION + 0.3, { ...idle, disruption: true }, 0.5);
