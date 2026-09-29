@@ -12,7 +12,7 @@ export function SiteHeader() {
   const soundOn = useSite((s) => s.soundOn);
   return (
     <header
-      className="fixed inset-x-0 top-0 z-40 flex items-center justify-between gap-3 bg-gradient-to-b from-[#070b14]/85 to-transparent px-4 py-4 md:px-8"
+      className="fixed inset-x-0 top-0 z-40 flex items-center justify-between gap-3 bg-[#070b14]/80 px-4 py-4 backdrop-blur-md md:bg-transparent md:bg-gradient-to-b md:from-[#070b14]/85 md:to-transparent md:px-8 md:backdrop-blur-none"
     >
       <button
         type="button"
