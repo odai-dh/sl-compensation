@@ -2,7 +2,7 @@
 
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { CarTaxiFront } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSite } from "@/lib/site/store";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +18,7 @@ export function Cursor() {
   const y = useMotionValue(-100);
   const sx = useSpring(x, { stiffness: 900, damping: 50, mass: 0.3 });
   const sy = useSpring(y, { stiffness: 900, damping: 50, mass: 0.3 });
+  const shown = useRef(false);
   const reducedMotion = useSite((s) => s.reducedMotion);
   const presenting = useSite((s) => s.presenting);
 
@@ -32,23 +33,33 @@ export function Cursor() {
   useEffect(() => {
     document.documentElement.classList.toggle("site-cursor", enabled);
     useSite.getState().set({ cursorOverPhone: false });
+    shown.current = false;
     if (!enabled) return;
-    const onMove = (e: PointerEvent) => {
-      x.set(e.clientX);
-      y.set(e.clientY);
+    const moveTo = (px: number, py: number) => {
+      x.set(px);
+      y.set(py);
+      if (shown.current) return;
+      // Appearing (first move, or back from outside the window): start at the pointer instead of flying in.
+      sx.jump(px);
+      sy.jump(py);
+      shown.current = true;
       setVisible(true);
+    };
+    const onMove = (e: PointerEvent) => {
+      moveTo(e.clientX, e.clientY);
       const t = e.target as HTMLElement | null;
       const phone = t?.closest("[data-cursor=taxi]");
       setMode(phone ? "taxi" : t?.closest("a,button,input,select,label,[role=slider],[data-cursor=hover]") ? "hover" : "dot");
     };
     const onApp = (e: Event) => {
       const d = (e as CustomEvent<CursorDetail>).detail;
-      x.set(d.x);
-      y.set(d.y);
-      setVisible(true);
+      moveTo(d.x, d.y);
       setMode(d.overPhone ? "taxi" : "dot");
     };
-    const onLeave = () => setVisible(false);
+    const onLeave = () => {
+      shown.current = false;
+      setVisible(false);
+    };
     window.addEventListener("pointermove", onMove);
     window.addEventListener(CURSOR_EVENT, onApp);
     document.documentElement.addEventListener("pointerleave", onLeave);
@@ -58,7 +69,7 @@ export function Cursor() {
       document.documentElement.removeEventListener("pointerleave", onLeave);
       document.documentElement.classList.remove("site-cursor");
     };
-  }, [enabled, x, y]);
+  }, [enabled, x, y, sx, sy]);
 
   if (!enabled) return null;
   return (
