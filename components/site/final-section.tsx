@@ -1,10 +1,11 @@
 "use client";
 
-import { ArrowUp, ExternalLink, Plus, Smartphone } from "lucide-react";
+import { ArrowUp, Smartphone } from "lucide-react";
 import Link from "next/link";
-import { CLOSING_LINE, FAQ } from "@/lib/site/content";
+import { CLOSING_LINE } from "@/lib/site/content";
 import { scrollToStation } from "@/lib/site/scroll";
 import { STATIONS } from "@/lib/site/story";
+import { Faq } from "./faq";
 import { Magnetic, siteButton } from "./magnetic";
 
 export function FinalSection() {
@@ -16,29 +17,7 @@ export function FinalSection() {
           <h2 id="final-title" className="font-[family-name:var(--font-display)] text-4xl font-extrabold md:text-5xl">
             Before you ride.
           </h2>
-          <div className="grid items-start gap-3 md:grid-cols-2">
-            {FAQ.map((f) => (
-              <details key={f.q} className="group rounded-3xl border border-white/10 bg-[#0e1422]/80 backdrop-blur open:border-[#ffb020]/40">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-6 font-semibold text-white [&::-webkit-details-marker]:hidden">
-                  {f.q}
-                  <Plus className="size-5 shrink-0 text-[#ffb020] transition-transform group-open:rotate-45" aria-hidden />
-                </summary>
-                <div className="-mt-2 flex flex-col gap-3 px-6 pb-6 text-sm leading-relaxed text-[#b3bfd1]">
-                  <p>{f.a}</p>
-                  {f.link && (
-                    <a
-                      href={f.link.href}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 self-start font-semibold text-[#ffb020] underline-offset-4 hover:underline"
-                    >
-                      {f.link.label} <ExternalLink className="size-3.5" aria-hidden />
-                    </a>
-                  )}
-                </div>
-              </details>
-            ))}
-          </div>
+          <Faq />
         </div>
 
         <div className="flex flex-col items-center gap-8 py-16 text-center">
