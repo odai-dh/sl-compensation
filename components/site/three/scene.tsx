@@ -1,6 +1,6 @@
 "use client";
 
-import { AdaptiveDpr, PerformanceMonitor, Stats } from "@react-three/drei";
+import { PerformanceMonitor, Stats } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Bloom, EffectComposer, Noise, Vignette } from "@react-three/postprocessing";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -87,6 +87,42 @@ function Effects() {
   );
 }
 
+/** Below this the scene is genuinely choppy, whatever the screen's refresh rate… */
+const CHOPPY_FPS = 24;
+/** …and above this it's smooth enough to raise the resolution again. */
+const SMOOTH_FPS = 45;
+
+/**
+ * Keeps the 3D on slower devices by stepping down gradually: first no postprocessing or reflections, then a
+ * lower resolution in steps. Only if it is still choppy at the lowest resolution does the illustrated
+ * fallback take over. The thresholds are fixed on purpose: drei's defaults follow the refresh rate, so on
+ * a 120 Hz screen anything under 60 fps counted as slow and a smooth scene was swapped for the fallback.
+ */
+function QualityMonitor({ onResolution }: { onResolution: (factor: number) => void }) {
+  const atLowestDpr = useRef(false);
+  return (
+    <PerformanceMonitor
+      factor={1}
+      step={0.25}
+      bounds={() => [CHOPPY_FPS, SMOOTH_FPS]}
+      // Not onChange: drei keeps its "last factor" in a render-body variable, so after a re-render it can miss
+      // the step down to 0 and the resolution would never reach its lowest step.
+      onDecline={({ factor }) => {
+        const s = useSite.getState();
+        if (s.quality === "high") s.set({ quality: "low" });
+        // The lowest resolution gets one full check of its own before giving up.
+        else if (factor === 0 && atLowestDpr.current) s.set({ quality: "fallback" });
+        atLowestDpr.current = factor === 0;
+        onResolution(factor);
+      }}
+      onIncline={({ factor }) => {
+        atLowestDpr.current = false;
+        onResolution(factor);
+      }}
+    />
+  );
+}
+
 /** Pauses rendering while the tab is hidden. */
 function useVisibleFrameloop() {
   const [visible, setVisible] = useState(true);
@@ -115,10 +151,17 @@ export default function Scene() {
   const mobile = useSite((s) => s.mobile);
   const frameloop = useVisibleFrameloop();
 
+  const maxDpr = mobile ? 1.5 : 1.75;
+  // 1 = full resolution, 0 = 1× pixel ratio. Kept as the Canvas prop: R3F re-applies `dpr` whenever the
+  // Canvas re-renders (switching to "low" does), which would undo a ratio set with setDpr.
+  const [resolution, setResolution] = useState(1);
+  const dpr: number | [number, number] =
+    resolution === 1 ? [1, maxDpr] : 1 + (Math.max(1, Math.min(window.devicePixelRatio, maxDpr)) - 1) * resolution;
+
   return (
     <Canvas
       frameloop={frameloop}
-      dpr={mobile ? [1, 1.5] : [1, 1.75]}
+      dpr={dpr}
       gl={{ antialias: !mobile, powerPreference: "high-performance", stencil: false }}
       camera={{ fov: 45, near: 0.5, far: 1200, position: [-40, 12, 36] }}
       onCreated={({ gl }) => {
@@ -128,17 +171,9 @@ export default function Scene() {
       }}
       aria-hidden
     >
-      {/* No `flipflops`/`onFallback`: drei counts every incline as a flip, so a smooth scene hit the
-          limit after ~12 s and got swapped for the static illustration. Only sustained slowness steps down. */}
-      <PerformanceMonitor
-        onDecline={({ factor }) => {
-          const s = useSite.getState();
-          // First drop: no postprocessing or reflections. Still too slow at the lowest factor: illustrated fallback.
-          if (s.quality === "high") s.set({ quality: "low" });
-          else if (factor < 0.05) s.set({ quality: "fallback" });
-        }}
-      />
-      <AdaptiveDpr />
+      {/* No `flipflops`/`onFallback` either: drei counts every incline as a flip, so a smooth scene hit that
+          limit after ~12 s. */}
+      <QualityMonitor onResolution={setResolution} />
       <SceneController params={params} />
       <CameraRig params={params} taxiPosition={taxiPosition} />
       <Suspense fallback={null}>
