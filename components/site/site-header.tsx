@@ -10,13 +10,9 @@ import { Magnetic, siteButton } from "./magnetic";
 
 export function SiteHeader() {
   const soundOn = useSite((s) => s.soundOn);
-  const presenting = useSite((s) => s.presenting);
   return (
     <header
-      className={cn(
-        "fixed inset-x-0 top-0 z-40 flex items-center justify-between gap-3 bg-gradient-to-b from-[#070b14]/85 to-transparent px-4 py-4 transition-opacity md:px-8",
-        presenting && "pointer-events-none opacity-0",
-      )}
+      className="fixed inset-x-0 top-0 z-40 flex items-center justify-between gap-3 bg-gradient-to-b from-[#070b14]/85 to-transparent px-4 py-4 md:px-8"
     >
       <button
         type="button"

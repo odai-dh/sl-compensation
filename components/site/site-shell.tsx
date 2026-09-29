@@ -4,7 +4,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import { useEffect } from "react";
-import { setLenis, scrollToStation } from "@/lib/site/scroll";
+import { setLenis } from "@/lib/site/scroll";
 import { SoundEngine } from "@/lib/site/sound";
 import { useSite } from "@/lib/site/store";
 import { sceneAt, STATIONS, storyTFromScroll } from "@/lib/site/story";
@@ -13,21 +13,19 @@ import { Cursor } from "./cursor";
 import { IntroLoader } from "./intro-loader";
 import { SiteCanvas } from "./site-canvas";
 import { SiteHeader } from "./site-header";
-import { PresentingHint, Toast } from "./toast";
+import { Toast } from "./toast";
 
 gsap.registerPlugin(ScrollTrigger);
 
-/** Client root of the showcase site: scroll, keyboard, sound and global overlays. */
+/** Client root of the showcase site: scroll, sound and global overlays. */
 export function SiteShell({ children }: { children: React.ReactNode }) {
   useEnvironment();
   useSmoothScroll();
   useStoryScroll();
-  useKeyboard();
   useSound();
-  const presenting = useSite((s) => s.presenting);
 
   return (
-    <div className="site-root relative min-h-dvh bg-[#070b14] font-[family-name:var(--font-text)] text-[#e9eef7] antialiased" data-presenting={presenting || undefined}>
+    <div className="site-root relative min-h-dvh bg-[#070b14] font-[family-name:var(--font-text)] text-[#e9eef7] antialiased">
       <a href="#try" className="sr-only z-50 rounded bg-[#ffb020] px-3 py-2 text-black focus:not-sr-only focus:fixed focus:left-4 focus:top-4">
         Skip to the live demo
       </a>
@@ -36,7 +34,6 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       <SiteHeader />
       <ChapterDots />
       <Toast />
-      <PresentingHint />
       <Cursor />
       <div className="relative z-10">{children}</div>
     </div>
@@ -110,33 +107,6 @@ function useStoryScroll() {
       ro.disconnect();
       window.removeEventListener("scroll", update);
     };
-  }, []);
-}
-
-function useKeyboard() {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return;
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const s = useSite.getState();
-      const key = e.key.toLowerCase();
-      if (key === "p") {
-        s.set({ presenting: !s.presenting });
-        return;
-      }
-      if (s.presenting && ["arrowdown", "arrowright", "pagedown", " "].includes(key)) {
-        e.preventDefault();
-        scrollToStation(s.currentChapter + 1);
-      } else if (s.presenting && ["arrowup", "arrowleft", "pageup"].includes(key)) {
-        e.preventDefault();
-        scrollToStation(s.currentChapter - 1);
-      } else if (key === "escape" && s.presenting) {
-        s.set({ presenting: false });
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
   }, []);
 }
 

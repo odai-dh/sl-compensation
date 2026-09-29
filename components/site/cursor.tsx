@@ -20,7 +20,6 @@ export function Cursor() {
   const sy = useSpring(y, { stiffness: 900, damping: 50, mass: 0.3 });
   const shown = useRef(false);
   const reducedMotion = useSite((s) => s.reducedMotion);
-  const presenting = useSite((s) => s.presenting);
 
   useEffect(() => {
     const mq = window.matchMedia("(pointer: fine) and (hover: hover)");
@@ -75,7 +74,7 @@ export function Cursor() {
   return (
     <motion.div
       aria-hidden
-      className={cn("pointer-events-none fixed left-0 top-0 z-[100] transition-opacity", (!visible || presenting) && "opacity-0")}
+      className={cn("pointer-events-none fixed left-0 top-0 z-[100] transition-opacity", !visible && "opacity-0")}
       style={{ x: sx, y: sy }}
     >
       <div

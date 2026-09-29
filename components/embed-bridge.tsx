@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { api } from "@/lib/client/api";
 import { emitToSite, isEmbedded } from "@/lib/client/embed";
-import { runJury, stopJury } from "@/lib/client/jury";
+import { runAutoplay, stopAutoplay } from "@/lib/client/autoplay";
 import { useApp } from "@/lib/client/store";
 import { readSiteMessage } from "@/lib/embed/events";
 
@@ -45,12 +45,12 @@ export function EmbedBridge() {
       if (msg.type === "cursor") {
         cursorHidden = msg.hidden;
         document.documentElement.classList.toggle("embed-no-cursor", msg.hidden);
-      } else if (msg.type === "runJury") {
-        runJury(router);
-      } else if (msg.type === "stopJury") {
-        stopJury();
+      } else if (msg.type === "runAutoplay") {
+        runAutoplay(router);
+      } else if (msg.type === "stopAutoplay") {
+        stopAutoplay();
       } else if (msg.type === "resetDemo") {
-        stopJury();
+        stopAutoplay();
         const { userId } = await api.startDemo();
         const s = useApp.getState();
         s.resetFlow();

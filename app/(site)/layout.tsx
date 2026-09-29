@@ -32,11 +32,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   title: "Vidare – when SL stops, you still get home",
   description:
-    "A hackathon concept: when SL traffic breaks down, Vidare orders and pays your taxi, then claims the cost from SL under a BankID power of attorney. You pay nothing.",
+    "When SL traffic breaks down, Vidare orders and pays your taxi, then claims the cost from SL under a BankID power of attorney. You pay nothing.",
   openGraph: {
     title: "Vidare – when SL stops, you still get home",
     description: "Vidare orders and pays your taxi when SL breaks down, and gets SL to pay it back.",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "A stylised night-time Stockholm with a stopped commuter train and a taxi under a streetlight" }],
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Night-time Stockholm with a commuter train on an elevated track, and the headline “17:42. On your way home.”" }],
     type: "website",
   },
   twitter: { card: "summary_large_image", images: ["/og.png"] },

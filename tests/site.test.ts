@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { APP_SOURCE, readAppEvent, readSiteMessage, SITE_SOURCE } from "@/lib/embed/events";
+import { SL_RULES } from "@/lib/core/sl-rules";
+import { FAQ } from "@/lib/site/content";
 import { estimateStranded } from "@/lib/site/stranded";
 import {
   cameraT,
@@ -156,5 +158,14 @@ describe("section boundaries", () => {
     const riding = { disruption: true, taxiOrdered: true, rideProgress: 0.6, rideDone: false };
     expect(sceneAt(TRY_STATION - 0.001, riding, 0.5).taxiVisible).toBe(true);
     expect(sceneAt(TRY_STATION - 0.2, riding, 0.5).taxiVisible).toBe(false);
+  });
+});
+
+describe("site copy", () => {
+  it("quotes SL's current numbers in the FAQ (from sl-rules.ts, never typed in)", () => {
+    const text = FAQ.map((f) => `${f.q} ${f.a}`).join(" ");
+    expect(text).toContain(`${SL_RULES.maxPayoutPerOccasion.toLocaleString("sv-SE")} kr`);
+    expect(text).toContain(`at least ${SL_RULES.minDelayMinutes} minutes`);
+    for (const tier of SL_RULES.refundTiers) expect(text).toContain(`${tier.percent} %`);
   });
 });

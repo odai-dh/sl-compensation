@@ -13,7 +13,7 @@ export const STATIONS = [
   { id: "ch4", label: "Vidare takes over" },
   { id: "ch5", label: "SL pays us" },
   { id: "try", label: "Try it" },
-  { id: "final", label: "The team" },
+  { id: "final", label: "Good to know" },
 ] as const;
 
 export type StationId = (typeof STATIONS)[number]["id"];
@@ -57,7 +57,7 @@ export function currentStation(storyT: number): number {
 export function cameraT(storyT: number, reducedMotion = false): number {
   const i = Math.floor(storyT);
   const local = storyT - i;
-  // The live demo keeps its framing while the jury uses the phone.
+  // The live demo keeps its framing while you use the phone.
   const hold = i === TRY_STATION ? 0.85 : 0.55;
   if (reducedMotion) return Math.min(LAST_STATION, local > hold + 0.05 ? i + 1 : i);
   return Math.min(LAST_STATION, i + easeInOutCubic(smoothstep(hold, 1, local)));
@@ -103,7 +103,7 @@ export const TRAIN_STOP_X = 0;
 const FINAL_DIM = 0.5;
 
 /**
- * 0..1, how much the scene is darkened behind text-heavy sections (the money chapter and the team).
+ * 0..1, how much the scene is darkened behind text-heavy sections (the money chapter and the FAQ).
  * Continuous in storyT, so the overlay never pops on at a section boundary.
  */
 export function sceneDim(storyT: number): number {

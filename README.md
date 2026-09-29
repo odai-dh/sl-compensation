@@ -15,7 +15,7 @@ npm run dev          # http://localhost:3000
 ```
 
 - **Showcase website:** http://localhost:3000 – a scroll-driven 3D story with the real app in a phone.
-  Press **P** to present, **Jury mode** to auto-play the demo. `?static=1` forces the illustrated (no-3D)
+  **Play it for me** auto-plays the demo. `?static=1` forces the illustrated (no-3D)
   version, `?debug=1` shows an FPS meter.
 - **App:** http://localhost:3000/app in a phone-sized window. Tap **Start demo** to skip onboarding, or go
   through it (BankID mock takes ~3 s). `/app?embed=1` is the embed mode the website uses.
@@ -45,10 +45,10 @@ npm run dev          # http://localhost:3000
 4. Then run the checklist in `DEMO.md` once on the live URL, on the projector laptop.
 
 How state works there: every visitor gets a private sandbox (an id in `localStorage`, sent as
-`x-vidare-sandbox`), stored in Netlify Blobs. One jury member pressing "Reset demo" never affects another.
+`x-vidare-sandbox`), stored in Netlify Blobs. One visitor pressing "Reset demo" never affects another.
 A sandbox is rebuilt after 12 hours so the seeded "announced 12 minutes ago" disruptions stay fresh.
 The `/admin` page and `/api/admin/*` routes are open on purpose (the website's "skip to the payout" and
-Jury mode use them); they only ever change the caller's own sandbox.
+"Play it for me" use them); they only ever change the caller's own sandbox.
 
 ## Docs
 
@@ -60,5 +60,5 @@ Stack: Next.js 16 (App Router), TypeScript strict, Tailwind CSS 4, shadcn/ui-sty
 Zustand, Zod, react-leaflet + OpenStreetMap, Vitest. Website: three.js via React Three Fiber + drei +
 postprocessing, GSAP ScrollTrigger + SplitText, Lenis, Web Audio API.
 
-The team names on the website are placeholders – edit `lib/site/content.ts`. When you deploy, set
+The website's FAQ lives in `lib/site/content.ts`. When you deploy, set
 `NEXT_PUBLIC_SITE_URL` so the Open Graph image (`public/og.png`) gets an absolute URL.

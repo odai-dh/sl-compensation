@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { BadgeCheck } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSite } from "@/lib/site/store";
 
 export function Toast() {
@@ -29,36 +29,5 @@ export function Toast() {
         )}
       </AnimatePresence>
     </div>
-  );
-}
-
-/** Shown for a few seconds when presentation mode turns on. */
-export function PresentingHint() {
-  const presenting = useSite((s) => s.presenting);
-  const [visible, setVisible] = useState(false);
-  const [prev, setPrev] = useState(presenting);
-  if (prev !== presenting) {
-    setPrev(presenting);
-    setVisible(presenting);
-  }
-  useEffect(() => {
-    if (!visible) return;
-    const t = setTimeout(() => setVisible(false), 3500);
-    return () => clearTimeout(t);
-  }, [visible]);
-  return (
-    <AnimatePresence>
-      {visible && (
-        <motion.p
-          role="status"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          className="fixed left-1/2 top-6 z-50 -translate-x-1/2 rounded-full border border-white/15 bg-[#070b14]/85 px-4 py-2 text-sm text-[#dbe2ee] backdrop-blur"
-        >
-          Presentation mode · ← → to move between chapters · P to exit
-        </motion.p>
-      )}
-    </AnimatePresence>
   );
 }

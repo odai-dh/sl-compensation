@@ -101,7 +101,7 @@ Put this exact object in /lib/core/sl-rules.ts and never hard-code these numbers
 - Don't `pkill -f`/match processes by command text in shell helpers (it kills your own shell); use ports.
 
 ## Showcase website
-A cinematic, scroll-driven 3D website for the hackathon jury, wrapped around the real app.
+A cinematic, scroll-driven 3D website for travellers, wrapped around the real app.
 
 - **Routing:** the website is `/` (`app/(site)`); the app lives at `/app/...` (`app/(screens)/app`); the demo admin
   stays at `/admin`. Embed mode: `/app?embed=1` (or any time the app runs in an iframe) hides the browser-only
@@ -122,15 +122,15 @@ A cinematic, scroll-driven 3D website for the hackathon jury, wrapped around the
 - **Prompt 9 – live demo:** the "Try it" section shows `/app?embed=1` in a CSS phone. Typed, Zod-validated,
   origin-checked `postMessage` events (`lib/embed/events.ts`): app → site `disruptionDetected`,
   `eligibilityChecked`, `taxiOrdered`, `rideStatusChanged`, `rideCompleted`, `claimStatusChanged` (+ `ready`,
-  `route`, `pointer`); site → app `resetDemo`, `runJury`, `stopJury`, `cursor`. The app derives events from its
+  `route`, `pointer`); site → app `resetDemo`, `runAutoplay`, `stopAutoplay`, `cursor`. The app derives events from its
   API traffic (`lib/client/embed.ts`), only in embed mode. The 3D world reacts (train stops, taxi drives in step
-  with the ride, amber burst + toast on payout) and a checklist ticks. **Jury mode** plays the whole flow.
-- **Prompt 10 – details:** custom cursor (taxi over the phone), magnetic buttons, tilt cards, evening→midnight
+  with the ride, amber burst + toast on payout) and a checklist ticks. **Play it for me** (`lib/client/autoplay.ts`) plays the whole flow.
+- **Prompt 10 – details:** custom cursor (taxi over the phone), magnetic buttons, evening→midnight
   slider, Web Audio sound design (off by default), live "stranded right now" counter (demo data), intro loader,
-  final section with team (edit `lib/site/content.ts`), tech badges and open questions.
+  final section: a "Good to know" FAQ for travellers (`lib/site/content.ts`, numbers from `sl-rules.ts`/`policy.ts`).
 - **Prompt 11 – polish:** tab-hidden pause, instancing, disposal, lazy iframe, `?debug=1` FPS meter, illustrated
   fallback for no-WebGL/slow devices (`?static=1` forces it), reduced-motion (no flying, no particles),
-  real-DOM text with heading order, OG image, favicon, presentation mode (`P`, arrows).
+  real-DOM text with heading order, OG image, favicon.
 
 ### Art direction
 - Mood: Stockholm on a late autumn evening. Deep blue-black night, wet streets, warm sodium streetlights,
@@ -139,8 +139,8 @@ A cinematic, scroll-driven 3D website for the hackathon jury, wrapped around the
 - Style: stylised low-poly, not photoreal. Everything procedural from primitives and custom geometry; no
   downloaded models, textures or fonts with unclear licences.
 - Typography: Unbounded (display) and Inter (text), both Google Fonts under SIL OFL, self-hosted from the
-  Fontsource npm packages with `next/font/local` so builds and the pitch need no network.
-- Never use SL's logo, name styling or brand colours. SL is mentioned in text only; the footer says
-  "Hackathon concept. Not affiliated with SL."
+  Fontsource npm packages with `next/font/local` so builds and demos need no network.
+- Never use SL's logo, name styling or brand colours. SL is mentioned in text only; the footer says it is a
+  concept demo and "Not affiliated with SL."
 
 @AGENTS.md
