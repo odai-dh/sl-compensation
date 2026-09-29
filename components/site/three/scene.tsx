@@ -123,6 +123,22 @@ function QualityMonitor({ onResolution }: { onResolution: (factor: number) => vo
   );
 }
 
+/**
+ * A WebGL context lost while the scene is running (GPU reset, driver crash) sends the site to the illustrated
+ * fallback. Only while it's mounted, though: R3F deliberately loses the context shortly after the canvas
+ * unmounts (opening the app, a hot reload), and a listener that outlived the canvas switched the whole site to
+ * 2D for good.
+ */
+function ContextLossFallback() {
+  const canvas = useThree((s) => s.gl.domElement);
+  useEffect(() => {
+    const onLost = () => useSite.getState().set({ quality: "fallback" });
+    canvas.addEventListener("webglcontextlost", onLost);
+    return () => canvas.removeEventListener("webglcontextlost", onLost);
+  }, [canvas]);
+  return null;
+}
+
 /** Pauses rendering while the tab is hidden. */
 function useVisibleFrameloop() {
   const [visible, setVisible] = useState(true);
@@ -167,13 +183,13 @@ export default function Scene() {
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
         gl.toneMappingExposure = 1.05;
-        gl.domElement.addEventListener("webglcontextlost", () => useSite.getState().set({ quality: "fallback" }));
       }}
       aria-hidden
     >
       {/* No `flipflops`/`onFallback` either: drei counts every incline as a flip, so a smooth scene hit that
           limit after ~12 s. */}
       <QualityMonitor onResolution={setResolution} />
+      <ContextLossFallback />
       <SceneController params={params} />
       <CameraRig params={params} taxiPosition={taxiPosition} />
       <Suspense fallback={null}>
