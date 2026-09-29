@@ -3,7 +3,7 @@
 import { gsap } from "gsap";
 import { SplitText } from "gsap/SplitText";
 import { ChevronDown } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { SL_RULES } from "@/lib/core/sl-rules";
 import { useSite } from "@/lib/site/store";
 import { STATIONS } from "@/lib/site/story";
@@ -20,7 +20,19 @@ const fmt = (n: number) => Math.round(n).toLocaleString("sv-SE");
 /** Section heights (in viewport heights) – the scroll length of each chapter. */
 const HEIGHTS = ["h-[200vh]", "h-[230vh]", "h-[210vh]", "h-[260vh]", "h-[230vh]"];
 
-const overlay = "pointer-events-none fixed inset-0 flex px-6 md:px-16";
+/** Whether the md breakpoint applies: chapter 5 swaps its diagram for a list below it. */
+const WIDE = "(min-width: 768px)";
+const subscribeWide = (onChange: () => void) => {
+  const mq = window.matchMedia(WIDE);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+};
+const useWide = () => useSyncExternalStore(subscribeWide, () => window.matchMedia(WIDE).matches, () => false);
+
+/** Only elements that are actually laid out (not inside a display:none branch). */
+const rendered = <T extends Element>(els: T[]) => els.filter((e) => e.getClientRects().length > 0);
+
+const overlay = "pointer-events-none fixed inset-0 flex px-6 pt-[4.5rem] md:px-16 md:pt-0";
 const scrim = "rounded-3xl bg-[#070b14]/45 p-6 backdrop-blur-[2px] md:bg-transparent md:p-0 md:backdrop-blur-none";
 
 /**
@@ -32,6 +44,7 @@ export function StoryChapters() {
   const root = useRef<HTMLDivElement>(null);
   const reducedMotion = useSite((s) => s.reducedMotion);
   const current = useSite((s) => s.currentChapter);
+  const wide = useWide();
 
   useEffect(() => {
     const el = root.current;
@@ -94,14 +107,16 @@ export function StoryChapters() {
         );
       });
 
-      // Chapter 5: the money-flow paths draw in.
-      const paths = gsap.utils.toArray<SVGPathElement>("[data-flow-path]", el);
+      // Chapter 5: the money-flow paths draw in (diagram), or the steps slide in (the list on phones).
+      const paths = rendered(gsap.utils.toArray<SVGPathElement>("[data-flow-path]", el));
       paths.forEach((p, k) => {
         const len = p.getTotalLength();
         tl.fromTo(p, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 0.18, ease: "none" }, 3.78 + k * 0.08);
       });
-      const nodes = gsap.utils.toArray<SVGGElement>("[data-flow-node]", el);
-      tl.from(nodes, { autoAlpha: 0, scale: 0.6, transformOrigin: "50% 50%", duration: 0.15, stagger: 0.05 }, 3.72);
+      const nodes = rendered(gsap.utils.toArray<SVGGElement>("[data-flow-node]", el));
+      if (nodes.length) tl.from(nodes, { autoAlpha: 0, scale: 0.6, transformOrigin: "50% 50%", duration: 0.15, stagger: 0.05 }, 3.72);
+      const steps = rendered(gsap.utils.toArray<HTMLElement>("[data-flow-step]", el));
+      if (steps.length) tl.from(steps, { autoAlpha: 0, x: reducedMotion ? 0 : -16, duration: 0.15, stagger: 0.06 }, 3.72);
 
       tl.seek(useSite.getState().storyT, false);
       const unsubscribe = useSite.subscribe((s) => tl.seek(Math.min(s.storyT, tl.duration()), false));
@@ -111,7 +126,7 @@ export function StoryChapters() {
       };
     }, el);
     return () => ctx.revert();
-  }, [reducedMotion]);
+  }, [reducedMotion, wide]);
 
   return (
     <div ref={root}>
@@ -170,31 +185,32 @@ export function StoryChapters() {
       {/* Chapter 3 */}
       <section id={STATIONS[2].id} className={cn("relative", HEIGHTS[2])} aria-labelledby="ch3-title">
         <div data-chapter className={cn(overlay, "items-center justify-center bg-[radial-gradient(ellipse_at_center,rgba(7,11,20,0.78),rgba(7,11,20,0.2)_75%)] text-center")} inert={current !== 2 || undefined}>
-          <div className={cn(scrim, "flex max-w-4xl flex-col items-center gap-8")}>
+          <div className={cn(scrim, "flex max-w-4xl flex-col items-center gap-5 md:gap-8")}>
             <h2 id="ch3-title" data-split className="font-[family-name:var(--font-display)] text-3xl font-extrabold leading-tight md:text-5xl">
               You have a right most people don’t know about.
             </h2>
-            <div className="grid grid-cols-2 gap-6 md:gap-16">
+            {/* Stacked on phones; side by side from sm, each column as wide as its number so "1 480 kr" never overflows. */}
+            <div className="grid gap-4 sm:grid-cols-[auto_auto] sm:justify-center sm:gap-10 lg:gap-16">
               <div>
-                <p className="font-[family-name:var(--font-display)] text-6xl font-extrabold text-[#ffb020] md:text-8xl">
+                <p className="whitespace-nowrap font-[family-name:var(--font-display)] text-5xl font-extrabold text-[#ffb020] sm:text-6xl lg:text-8xl">
                   <span data-count={MIN}>{MIN}</span>
-                  <span className="text-3xl md:text-5xl"> min</span>
+                  <span className="text-2xl sm:text-3xl lg:text-5xl"> min</span>
                 </p>
-                <p className="mt-2 text-sm text-[#c9d3e3]">risk of delay at your final destination</p>
+                <p className="mt-1 text-sm text-[#c9d3e3] sm:mt-2">risk of delay at your final destination</p>
               </div>
               <div>
-                <p className="font-[family-name:var(--font-display)] text-6xl font-extrabold text-[#ffb020] md:text-8xl">
+                <p className="whitespace-nowrap font-[family-name:var(--font-display)] text-5xl font-extrabold text-[#ffb020] sm:text-6xl lg:text-8xl">
                   <span data-count={CAP}>{fmt(CAP)}</span>
-                  <span className="text-3xl md:text-5xl"> kr</span>
+                  <span className="text-2xl sm:text-3xl lg:text-5xl"> kr</span>
                 </p>
-                <p className="mt-2 text-sm text-[#c9d3e3]">SL reimburses for a taxi, per occasion</p>
+                <p className="mt-1 text-sm text-[#c9d3e3] sm:mt-2">SL reimburses for a taxi, per occasion</p>
               </div>
             </div>
-            <p className="max-w-2xl text-lg text-[#dbe2ee]">
+            <p className="max-w-2xl text-base text-[#dbe2ee] md:text-lg">
               Under Swedish law (Lag 2015:953) and SL’s own terms, if SL traffic risks making you at least {MIN} minutes late,
               you may take a taxi – and SL pays up to {fmt(CAP)} kr.
             </p>
-            <p className="text-lg font-semibold text-white">But who fronts {fmt(CAP)} kr and waits weeks for a refund?</p>
+            <p className="text-base font-semibold text-white md:text-lg">But who fronts {fmt(CAP)} kr and waits weeks for a refund?</p>
           </div>
         </div>
       </section>
