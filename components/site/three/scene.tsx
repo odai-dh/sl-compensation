@@ -12,7 +12,7 @@ import { PayoutBurst, Rain, Sky } from "./atmosphere";
 import { Signal, Street, Streetlights, Track } from "./infrastructure";
 import { Phone } from "./phone";
 import { Taxi } from "./taxi";
-import { SkylineTrains, Train } from "./train";
+import { Train } from "./train";
 import { PICKUP, PICKUP_U, STATIONS_DESKTOP, STATIONS_MOBILE, type Station } from "./world";
 
 const initialParams = (): SceneParams => sceneAt(0, { disruption: false, taxiOrdered: false, rideProgress: 0, rideDone: false }, PICKUP_U);
@@ -50,8 +50,8 @@ function CameraRig({ params, taxiPosition }: { params: { current: SceneParams };
     curves.pos.getPoint(t, tmp.pos);
     curves.target.getPoint(t, tmp.target);
     // Chapter 4: follow the taxi as it drives off.
-    if (params.current.taxiVisible && params.current.taxiU > 0.01) {
-      tmp.target.lerp(taxiPosition.current, 0.45);
+    if (params.current.cameraFollow > 0) {
+      tmp.target.lerp(taxiPosition.current, 0.45 * params.current.cameraFollow);
     }
     if (!reducedMotion) {
       tmp.pos.x += Math.sin(clock.elapsedTime * 0.23) * 0.5;
@@ -128,10 +128,15 @@ export default function Scene() {
       }}
       aria-hidden
     >
+      {/* No `flipflops`/`onFallback`: drei counts every incline as a flip, so a smooth scene hit the
+          limit after ~12 s and got swapped for the static illustration. Only sustained slowness steps down. */}
       <PerformanceMonitor
-        onDecline={() => useSite.getState().set({ quality: "low" })}
-        flipflops={4}
-        onFallback={() => useSite.getState().set({ quality: "fallback" })}
+        onDecline={({ factor }) => {
+          const s = useSite.getState();
+          // First drop: no postprocessing or reflections. Still too slow at the lowest factor: illustrated fallback.
+          if (s.quality === "high") s.set({ quality: "low" });
+          else if (factor < 0.05) s.set({ quality: "fallback" });
+        }}
       />
       <AdaptiveDpr />
       <SceneController params={params} />
@@ -144,7 +149,6 @@ export default function Scene() {
         <Streetlights />
         <Signal params={params} />
         <Train params={params} />
-        <SkylineTrains />
         <Taxi params={params} taxiPosition={taxiPosition} />
         <Phone params={params} />
         <Rain params={params} />

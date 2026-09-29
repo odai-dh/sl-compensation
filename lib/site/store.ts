@@ -20,7 +20,6 @@ type SiteState = {
   /** 0 = evening, 1 = midnight. */
   timeOfDay: number;
   soundOn: boolean;
-  presenting: boolean;
   debug: boolean;
   loaded: boolean;
   cursorOverPhone: boolean;
@@ -32,16 +31,14 @@ type SiteState = {
     doorCount: number;
     checklist: Checklist;
     appReady: boolean;
-    juryRunning: boolean;
+    autoplayRunning: boolean;
   };
-  extraTrains: number[];
   toast: { id: number; text: string } | null;
   setScroll: (storyT: number, scrollProgress: number) => void;
   set: (patch: Partial<Omit<SiteState, "demo">>) => void;
   applyAppEvent: (e: AppEvent) => void;
   resetDemo: () => void;
-  setJury: (running: boolean) => void;
-  spawnTrain: () => void;
+  setAutoplay: (running: boolean) => void;
   showToast: (text: string) => void;
 };
 
@@ -57,7 +54,7 @@ const freshDemo = (): SiteState["demo"] => ({
   doorCount: 0,
   checklist: { stranded: false, ordered: false, paid: false },
   appReady: false,
-  juryRunning: false,
+  autoplayRunning: false,
 });
 
 /** One store for the DOM and the 3D scene, so both always show the same moment. */
@@ -70,12 +67,10 @@ export const useSite = create<SiteState>()((set, get) => ({
   reducedMotion: false,
   timeOfDay: 0.35,
   soundOn: false,
-  presenting: false,
   debug: false,
   loaded: false,
   cursorOverPhone: false,
   demo: freshDemo(),
-  extraTrains: [],
   toast: null,
 
   setScroll: (storyT, scrollProgress) => {
@@ -131,7 +126,6 @@ export const useSite = create<SiteState>()((set, get) => ({
     }
   },
   resetDemo: () => set({ demo: { ...freshDemo(), appReady: get().demo.appReady } }),
-  setJury: (running) => set({ demo: { ...get().demo, juryRunning: running } }),
-  spawnTrain: () => set({ extraTrains: [...get().extraTrains.filter((t) => performance.now() - t < 9000), performance.now()] }),
+  setAutoplay: (running) => set({ demo: { ...get().demo, autoplayRunning: running } }),
   showToast: (text) => set({ toast: { id: Date.now(), text } }),
 }));

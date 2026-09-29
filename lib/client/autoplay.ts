@@ -7,15 +7,15 @@ type Router = { push: (href: string) => void };
 
 let runId = 0;
 
-export function stopJury() {
+export function stopAutoplay() {
   runId++;
 }
 
 /**
- * Jury mode: plays the whole story in the real app at a comfortable pace – start demo,
+ * Autoplay: plays the whole story in the real app at a comfortable pace – start demo,
  * I'm stranded, verdict, quote, order, ride, receipt, claim approved and paid.
  */
-export async function runJury(router: Router) {
+export async function runAutoplay(router: Router) {
   const id = ++runId;
   const alive = () => id === runId;
   const wait = (ms: number) =>

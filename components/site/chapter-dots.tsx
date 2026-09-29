@@ -7,14 +7,10 @@ import { cn } from "@/lib/utils";
 
 export function ChapterDots() {
   const current = useSite((s) => s.currentChapter);
-  const presenting = useSite((s) => s.presenting);
   return (
     <nav
       aria-label="Chapters"
-      className={cn(
-        "fixed right-3 top-1/2 z-40 hidden -translate-y-1/2 flex-col gap-1 transition-opacity md:flex",
-        presenting && "pointer-events-none opacity-0",
-      )}
+      className="fixed right-3 top-1/2 z-40 hidden -translate-y-1/2 flex-col gap-1 md:flex"
     >
       {STATIONS.map((s, i) => (
         <button

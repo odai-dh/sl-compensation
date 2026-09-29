@@ -178,9 +178,18 @@ export function PayoutBurst({ origin }: { origin: { current: THREE.Vector3 } }) 
   }, []);
   const points = useRef<THREE.Points>(null);
   const mat = useRef<THREE.PointsMaterial>(null);
+  const lastPaidCount = useRef(paidCount);
+
+  // Reduced motion: no burst, and stop one that is playing.
+  useEffect(() => {
+    if (reducedMotion) state.start = -1;
+  }, [reducedMotion, state]);
 
   useEffect(() => {
-    if (paidCount === 0 || reducedMotion) return;
+    // Only a new payout bursts (not, say, reduced motion being switched off afterwards).
+    const isNew = paidCount > lastPaidCount.current;
+    lastPaidCount.current = paidCount;
+    if (!isNew || useSite.getState().reducedMotion) return;
     const rng = mulberry32(paidCount * 13);
     const pos = geometry.attributes.position as THREE.BufferAttribute;
     const o = origin.current;
@@ -193,7 +202,7 @@ export function PayoutBurst({ origin }: { origin: { current: THREE.Vector3 } }) 
     }
     pos.needsUpdate = true;
     state.start = performance.now();
-  }, [paidCount, reducedMotion, geometry, origin, state]);
+  }, [paidCount, geometry, origin, state]);
 
   useEffect(() => () => geometry.dispose(), [geometry]);
 

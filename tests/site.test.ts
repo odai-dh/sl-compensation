@@ -1,15 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { APP_SOURCE, readAppEvent, readSiteMessage, SITE_SOURCE } from "@/lib/embed/events";
+import { SL_RULES } from "@/lib/core/sl-rules";
+import { FAQ } from "@/lib/site/content";
 import { estimateStranded } from "@/lib/site/stranded";
 import {
   cameraT,
   currentStation,
   PICKUP_FRACTION,
   sceneAt,
+  sceneDim,
   STATIONS,
   storyTFromScroll,
   taxiUFromRide,
-  TRAIN_STOP_X,
   TRY_STATION,
   type DemoState,
 } from "@/lib/site/story";
@@ -77,14 +79,13 @@ describe("scene params", () => {
 
   it("ch1: train cruises, signal green", () => {
     const s = sceneAt(0.2, idle, 0.5);
-    expect(s.trainScripted).toBe(0);
+    expect(s.trainStop).toBe(0);
     expect(s.signalRed).toBe(false);
   });
 
   it("ch2: the train stops, the signal turns red and the rain gets heavier", () => {
     const s = sceneAt(1.5, idle, 0.5);
-    expect(s.trainScripted).toBe(1);
-    expect(s.trainScriptX).toBeCloseTo(TRAIN_STOP_X);
+    expect(s.trainStop).toBe(1);
     expect(s.signalRed).toBe(true);
     expect(s.rain).toBeGreaterThan(sceneAt(0.2, idle, 0.5).rain);
   });
@@ -96,11 +97,32 @@ describe("scene params", () => {
     expect(sceneAt(3.45, idle, 0.5).roofSign).toBe(1);
   });
 
+  it("ch4: the camera follows the taxi only while it drives off, easing in and out", () => {
+    expect(sceneAt(3.1, idle, 0.5).cameraFollow).toBe(0);
+    expect(sceneAt(3.5, idle, 0.5).cameraFollow).toBe(0);
+    expect(sceneAt(3.78, idle, 0.5).cameraFollow).toBe(1);
+    expect(sceneAt(3.99, idle, 0.5).cameraFollow).toBeLessThan(0.05);
+    expect(sceneAt(4.0, idle, 0.5).cameraFollow).toBe(0);
+    const riding = { disruption: true, taxiOrdered: true, rideProgress: 0.8, rideDone: false };
+    expect(sceneAt(TRY_STATION + 0.3, riding, 0.5).cameraFollow).toBe(0);
+  });
+
+  it("dims the scene without ever popping at a section boundary", () => {
+    let prev = sceneDim(0);
+    for (let t = 0.001; t <= STATIONS.length - 1; t += 0.001) {
+      const d = sceneDim(t);
+      expect(Math.abs(d - prev)).toBeLessThan(0.01);
+      prev = d;
+    }
+    expect(sceneDim(TRY_STATION + 0.5)).toBe(0);
+    expect(sceneDim(STATIONS.length - 1)).toBe(0.5);
+  });
+
   it("try it: follows the demo events", () => {
     expect(sceneAt(TRY_STATION + 0.3, idle, 0.5).signalRed).toBe(false);
     const stuck = sceneAt(TRY_STATION + 0.3, { ...idle, disruption: true }, 0.5);
     expect(stuck.signalRed).toBe(true);
-    expect(stuck.trainScripted).toBe(1);
+    expect(stuck.trainStop).toBe(1);
     const riding = sceneAt(TRY_STATION + 0.3, { disruption: true, taxiOrdered: true, rideProgress: PICKUP_FRACTION, rideDone: false }, 0.5);
     expect(riding.taxiVisible).toBe(true);
     expect(riding.taxiU).toBeCloseTo(0.5);
@@ -136,5 +158,14 @@ describe("section boundaries", () => {
     const riding = { disruption: true, taxiOrdered: true, rideProgress: 0.6, rideDone: false };
     expect(sceneAt(TRY_STATION - 0.001, riding, 0.5).taxiVisible).toBe(true);
     expect(sceneAt(TRY_STATION - 0.2, riding, 0.5).taxiVisible).toBe(false);
+  });
+});
+
+describe("site copy", () => {
+  it("quotes SL's current numbers in the FAQ (from sl-rules.ts, never typed in)", () => {
+    const text = FAQ.map((f) => `${f.q} ${f.a}`).join(" ");
+    expect(text).toContain(`${SL_RULES.maxPayoutPerOccasion.toLocaleString("sv-SE")} kr`);
+    expect(text).toContain(`at least ${SL_RULES.minDelayMinutes} minutes`);
+    for (const tier of SL_RULES.refundTiers) expect(text).toContain(`${tier.percent} %`);
   });
 });

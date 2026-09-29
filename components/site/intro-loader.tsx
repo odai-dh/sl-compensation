@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useSite } from "@/lib/site/store";
 
@@ -9,7 +9,8 @@ const RAIL = "M 40 150 C 160 150, 200 60, 320 60 S 480 150, 600 150 S 760 60, 86
 /** The Vidare wordmark drawn as a rail line with a little train running along it. */
 export function IntroLoader() {
   const loaded = useSite((s) => s.loaded);
-  const reduced = useSite((s) => s.reducedMotion);
+  // Read on the very first render (the store only learns it after mount), so the drawing never starts animating first.
+  const reduced = useReducedMotion() ?? false;
   const [minDone, setMinDone] = useState(false);
   const [giveUp, setGiveUp] = useState(false);
 
@@ -24,6 +25,8 @@ export function IntroLoader() {
   }, [reduced]);
 
   const show = !((loaded && minDone) || giveUp);
+  // The line and the train share one timing, so the train rides the tip of the line as it is drawn.
+  const draw = { duration: reduced ? 0 : 1.6, ease: "easeInOut" } as const;
 
   return (
     <AnimatePresence>
@@ -37,30 +40,40 @@ export function IntroLoader() {
           className="fixed inset-0 z-[90] flex flex-col items-center justify-center gap-6 bg-[#070b14]"
         >
           <svg viewBox="0 0 900 210" className="w-[min(640px,86vw)]" aria-hidden>
+            <defs>
+              {/* pathLength draws with stroke-dasharray, which would replace the dots: draw a mask instead. */}
+              <mask id="loader-rail-reveal" maskUnits="userSpaceOnUse">
+                <motion.path
+                  d={RAIL}
+                  fill="none"
+                  stroke="#fff"
+                  strokeWidth={12}
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={draw}
+                />
+              </mask>
+            </defs>
             <path d={RAIL} fill="none" stroke="#1d2536" strokeWidth={10} strokeLinecap="round" />
-            <motion.path
+            <path
               d={RAIL}
               fill="none"
               stroke="#ffb020"
               strokeWidth={3}
               strokeLinecap="round"
               strokeDasharray="1 14"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: reduced ? 0 : 1.6, ease: "easeInOut" }}
+              mask="url(#loader-rail-reveal)"
             />
-            <g
-              style={{
-                offsetPath: `path("${RAIL}")`,
-                offsetRotate: "auto",
-                animation: reduced ? undefined : "loader-train 1.8s ease-in-out forwards",
-                offsetDistance: reduced ? "100%" : undefined,
-              }}
+            <motion.g
+              style={{ offsetPath: `path("${RAIL}")`, offsetRotate: "auto" }}
+              initial={{ offsetDistance: "0%" }}
+              animate={{ offsetDistance: "100%" }}
+              transition={draw}
             >
               <rect x={-26} y={-9} width={52} height={18} rx={6} fill="#aeb8c6" />
               <rect x={-20} y={-5} width={40} height={5} rx={1} fill="#ffc774" />
               <rect x={24} y={-2} width={4} height={4} fill="#fff2cf" />
-            </g>
+            </motion.g>
             <text
               x={450}
               y={205}

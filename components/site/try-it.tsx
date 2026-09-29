@@ -73,35 +73,35 @@ export function TryIt() {
         return;
       }
       if (e.type === "ready" && document.documentElement.classList.contains("site-cursor")) post({ type: "cursor", hidden: true });
-      // Nobody signed in inside the phone yet: start the demo user so the jury can tap "I'm stranded" right away.
+      // Nobody signed in inside the phone yet: start the demo user so visitors can tap "I'm stranded" right away.
       if (e.type === "route" && e.path === "/app/welcome" && !autoStarted.current) {
         autoStarted.current = true;
         post({ type: "resetDemo" });
       }
       useSite.getState().applyAppEvent(e);
-      if (e.type === "claimStatusChanged" && e.status === "paidOut") useSite.getState().setJury(false);
+      if (e.type === "claimStatusChanged" && e.status === "paidOut") useSite.getState().setAutoplay(false);
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
   }, [post, scale]);
 
-  const runJury = () => {
+  const runAutoplay = () => {
     const s = useSite.getState();
-    if (s.demo.juryRunning) {
-      post({ type: "stopJury" });
-      s.setJury(false);
+    if (s.demo.autoplayRunning) {
+      post({ type: "stopAutoplay" });
+      s.setAutoplay(false);
       return;
     }
     scrollToStation(TRY_STATION, { offsetRatio: 0 });
     s.resetDemo();
-    s.setJury(true);
+    s.setAutoplay(true);
     setSrc((cur) => cur ?? "/app?embed=1");
     // Give a freshly loaded iframe a moment to boot.
-    setTimeout(() => post({ type: "runJury" }), s.demo.appReady ? 300 : 2500);
+    setTimeout(() => post({ type: "runAutoplay" }), s.demo.appReady ? 300 : 2500);
   };
 
   const reset = () => {
-    post({ type: "stopJury" });
+    post({ type: "stopAutoplay" });
     post({ type: "resetDemo" });
     useSite.getState().resetDemo();
   };
@@ -165,9 +165,9 @@ export function TryIt() {
           </ol>
           <div className="flex flex-wrap gap-3">
             <Magnetic>
-              <button type="button" onClick={runJury} className={siteButton.primary}>
-                {demo.juryRunning ? <SquareStop className="size-5" aria-hidden /> : <PlayCircle className="size-5" aria-hidden />}
-                {demo.juryRunning ? "Stop jury mode" : "Jury mode"}
+              <button type="button" onClick={runAutoplay} className={siteButton.primary}>
+                {demo.autoplayRunning ? <SquareStop className="size-5" aria-hidden /> : <PlayCircle className="size-5" aria-hidden />}
+                {demo.autoplayRunning ? "Stop" : "Play it for me"}
               </button>
             </Magnetic>
             <button type="button" onClick={reset} className={siteButton.ghost}>
@@ -180,7 +180,7 @@ export function TryIt() {
               SL takes weeks – skip to the payout
             </button>
           )}
-          <p className="text-xs text-[#8995ab]">Jury mode plays the whole flow by itself. Demo data only – no real money.</p>
+          <p className="text-xs text-[#8995ab]">“Play it for me” runs the whole flow by itself. Demo data only – no real money.</p>
         </div>
 
         <div

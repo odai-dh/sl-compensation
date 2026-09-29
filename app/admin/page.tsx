@@ -49,7 +49,7 @@ export default function AdminPage() {
         <div>
           <p className="text-sm font-medium text-primary">Vidare</p>
           <h1 className="text-2xl font-bold tracking-tight">Demo admin</h1>
-          <p className="text-sm text-muted-foreground">Hidden route for the pitch. Moves mock data; nothing here is real.</p>
+          <p className="text-sm text-muted-foreground">Hidden route for running demos. Moves mock data; nothing here is real.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" asChild>
@@ -183,7 +183,7 @@ function ScenarioTab({ state, busy, run }: { state: AdminData; busy: string | nu
       <Card className="md:col-span-2">
         <CardHeader>
           <CardTitle>Live rides</CardTitle>
-          <CardDescription>Skip a ride ahead to keep the pitch moving.</CardDescription>
+          <CardDescription>Skip a ride ahead to keep a demo moving.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
           {liveRides.length === 0 && <p className="text-sm text-muted-foreground">No rides in progress.</p>}

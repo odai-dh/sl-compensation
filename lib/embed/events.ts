@@ -36,8 +36,8 @@ export const AppEventSchema = z.discriminatedUnion("type", [
 /** Site → app. */
 export const SiteMessageSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("resetDemo") }),
-  z.object({ type: z.literal("runJury") }),
-  z.object({ type: z.literal("stopJury") }),
+  z.object({ type: z.literal("runAutoplay") }),
+  z.object({ type: z.literal("stopAutoplay") }),
   z.object({ type: z.literal("cursor"), hidden: z.boolean() }),
 ]);
 

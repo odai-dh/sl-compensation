@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
 import { useSite } from "@/lib/site/store";
+import { sceneDim } from "@/lib/site/story";
 import { StaticScene } from "./static-scene";
 
 const Scene = dynamic(() => import("./three/scene"), { ssr: false, loading: () => null });
@@ -41,12 +42,7 @@ function DimOverlay() {
   useEffect(() => {
     const el = document.getElementById("scene-dim");
     return useSite.subscribe((s) => {
-      if (!el) return;
-      const t = s.storyT;
-      const i = Math.floor(t);
-      const local = t - i;
-      const dim = i === 4 ? 0.55 * Math.min(1, local / 0.25) * (1 - Math.max(0, (local - 0.8) / 0.2)) : i >= 6 ? 0.5 : 0;
-      el.style.opacity = String(dim);
+      if (el) el.style.opacity = String(sceneDim(s.storyT));
     });
   }, []);
   return <div id="scene-dim" className="absolute inset-0 bg-[#05070d] opacity-0" />;

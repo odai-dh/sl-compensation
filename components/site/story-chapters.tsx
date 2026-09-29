@@ -84,6 +84,8 @@ export function StoryChapters() {
       nums.forEach((n) => {
         const to = Number(n.dataset.count);
         const proxy = { v: 0 };
+        // The server renders the final number; start from 0 so it doesn't flash in before counting up.
+        n.textContent = fmt(0);
         tl.fromTo(
           proxy,
           { v: 0 },
@@ -117,7 +119,7 @@ export function StoryChapters() {
       <section id={STATIONS[0].id} className={cn("relative", HEIGHTS[0])} aria-labelledby="ch1-title">
         <div data-chapter className={cn(overlay, "items-center bg-gradient-to-r from-[#070b14]/80 via-[#070b14]/30 to-transparent")} inert={current !== 0 || undefined}>
           <div className={cn(scrim, "flex max-w-3xl flex-col gap-6")}>
-            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#ffb020]">Vidare · a hackathon concept</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#ffb020]">Vidare · delay compensation, handled</p>
             <h1
               id="ch1-title"
               data-split
@@ -189,7 +191,7 @@ export function StoryChapters() {
               </div>
             </div>
             <p className="max-w-2xl text-lg text-[#dbe2ee]">
-              Under Swedish law (Lag 2015:953) and SL’s own terms, if SL traffic risks making you more than {MIN} minutes late,
+              Under Swedish law (Lag 2015:953) and SL’s own terms, if SL traffic risks making you at least {MIN} minutes late,
               you may take a taxi – and SL pays up to {fmt(CAP)} kr.
             </p>
             <p className="text-lg font-semibold text-white">But who fronts {fmt(CAP)} kr and waits weeks for a refund?</p>

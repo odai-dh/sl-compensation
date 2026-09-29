@@ -13,7 +13,7 @@ export const STATIONS = [
   { id: "ch4", label: "Vidare takes over" },
   { id: "ch5", label: "SL pays us" },
   { id: "try", label: "Try it" },
-  { id: "final", label: "The team" },
+  { id: "final", label: "Good to know" },
 ] as const;
 
 export type StationId = (typeof STATIONS)[number]["id"];
@@ -57,7 +57,7 @@ export function currentStation(storyT: number): number {
 export function cameraT(storyT: number, reducedMotion = false): number {
   const i = Math.floor(storyT);
   const local = storyT - i;
-  // The live demo keeps its framing while the jury uses the phone.
+  // The live demo keeps its framing while you use the phone.
   const hold = i === TRY_STATION ? 0.85 : 0.55;
   if (reducedMotion) return Math.min(LAST_STATION, local > hold + 0.05 ? i + 1 : i);
   return Math.min(LAST_STATION, i + easeInOutCubic(smoothstep(hold, 1, local)));
@@ -82,10 +82,11 @@ export type DemoState = {
 };
 
 export type SceneParams = {
-  /** 0 = train cruising freely, 1 = train fully on its scripted/stopped position. */
-  trainScripted: number;
-  /** Where the scripted train front is (x). */
-  trainScriptX: number;
+  /**
+   * 0 = trains run freely; above 0 they stop at the red signal (see lib/site/train.ts, which only ever
+   * drives them forwards). The sound fades the train rumble out with it.
+   */
+  trainStop: number;
   signalRed: boolean;
   rain: number;
   flicker: number;
@@ -93,11 +94,26 @@ export type SceneParams = {
   taxiVisible: boolean;
   roofSign: number;
   phoneRise: number;
-  /** 0..1, how much the story overlay dims the scene (money chapter, final). */
-  dim: number;
+  /** 0..1, how much the camera turns to follow the taxi (only while it drives off in ch4). */
+  cameraFollow: number;
 };
 
 export const TRAIN_STOP_X = 0;
+
+const FINAL_DIM = 0.5;
+
+/**
+ * 0..1, how much the scene is darkened behind text-heavy sections (the money chapter and the FAQ).
+ * Continuous in storyT, so the overlay never pops on at a section boundary.
+ */
+export function sceneDim(storyT: number): number {
+  const i = Math.floor(storyT);
+  const local = storyT - i;
+  if (i === 4) return smoothstep(0, 0.25, local) * 0.55 * (1 - smoothstep(0.8, 1, local));
+  // Eases in while the camera flies out of the live demo to the final view.
+  if (i === TRY_STATION) return FINAL_DIM * smoothstep(0.8, 1, local);
+  return i > TRY_STATION ? FINAL_DIM : 0;
+}
 
 /** Everything the scene needs, derived from storyT and (in the Try-it section) demo events. */
 export function sceneAt(rawT: number, demo: DemoState, pickupU: number): SceneParams {
@@ -106,8 +122,7 @@ export function sceneAt(rawT: number, demo: DemoState, pickupU: number): ScenePa
   const i = Math.floor(storyT);
   const local = storyT - i;
   const base: SceneParams = {
-    trainScripted: 0,
-    trainScriptX: TRAIN_STOP_X,
+    trainStop: 0,
     signalRed: false,
     rain: 0.35,
     flicker: 0,
@@ -115,15 +130,13 @@ export function sceneAt(rawT: number, demo: DemoState, pickupU: number): ScenePa
     taxiVisible: false,
     roofSign: 0,
     phoneRise: 0,
-    dim: 0,
+    cameraFollow: 0,
   };
 
   // Chapters 1–5: the scripted story.
   if (storyT < TRY_STATION) {
-    // Train: cruises in ch1, brakes to a stop during the fly-in to ch2, stays stopped until the story ends.
-    const brake = smoothstep(0.55, 1.35, storyT);
-    base.trainScripted = smoothstep(0.55, 0.8, storyT);
-    base.trainScriptX = lerp(-70, TRAIN_STOP_X, easeOutCubic(brake));
+    // Train: runs in ch1, stops at the signal from the fly-in to ch2 until the story ends.
+    base.trainStop = smoothstep(0.55, 0.8, storyT);
     base.signalRed = storyT >= 1.05;
     base.rain = lerp(0.35, 1, smoothstep(0.9, 1.4, storyT)) - 0.35 * smoothstep(3.2, 4.2, storyT);
     base.flicker = smoothstep(1.0, 1.3, storyT) * (1 - smoothstep(2.4, 2.9, storyT));
@@ -135,14 +148,15 @@ export function sceneAt(rawT: number, demo: DemoState, pickupU: number): ScenePa
         local < 0.4 ? easeOutCubic(local / 0.4) * pickupU : local < 0.55 ? pickupU : lerp(pickupU, 1, easeInOutCubic((local - 0.55) / 0.45));
       base.roofSign = smoothstep(0.15, 0.3, local);
       base.phoneRise = smoothstep(0.05, 0.35, local) * (1 - smoothstep(0.85, 1, local));
+      // Eases in as it pulls away and back out before the section ends, so the camera never lurches.
+      base.cameraFollow = smoothstep(0.55, 0.7, local) * (1 - smoothstep(0.85, 1, local));
     }
-    if (i === 4) base.dim = smoothstep(0, 0.25, local) * 0.55 * (1 - smoothstep(0.8, 1, local));
     return base;
   }
 
   // Try it: the scene mirrors what happens in the real app.
   if (i === TRY_STATION) {
-    base.trainScripted = demo.disruption ? 1 : 0;
+    base.trainStop = demo.disruption ? 1 : 0;
     base.signalRed = demo.disruption;
     base.rain = demo.disruption ? 0.8 : 0.4;
     base.taxiVisible = demo.taxiOrdered && !demo.rideDone;
@@ -151,8 +165,7 @@ export function sceneAt(rawT: number, demo: DemoState, pickupU: number): ScenePa
     return base;
   }
 
-  // Final: calm city, slightly dimmed behind the text.
-  base.dim = 0.45;
+  // Final: calm city, dimmed behind the text (see sceneDim).
   base.rain = 0.25;
   return base;
 }

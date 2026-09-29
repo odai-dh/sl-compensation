@@ -17,6 +17,16 @@ const SLIDES: { icon: typeof TrainFront; accent: typeof TrainFront; title: DictK
   { icon: FileSignature, accent: Sparkles, title: "welcome.3.title", body: "welcome.3.body" },
 ];
 
+/**
+ * Functions of `custom`, so a slide that is already leaving still gets the latest direction from
+ * AnimatePresence (a plain `exit` object would keep the direction it was rendered with).
+ */
+const slideVariants = {
+  enter: (direction: number) => ({ x: direction >= 0 ? 280 : -280, opacity: 0 }),
+  center: { x: 0, opacity: 1 },
+  exit: (direction: number) => ({ x: direction >= 0 ? -280 : 280, opacity: 0 }),
+};
+
 export default function WelcomeScreen() {
   const t = useT();
   const router = useRouter();
@@ -73,9 +83,10 @@ export default function WelcomeScreen() {
             role="group"
             aria-roledescription="slide"
             aria-label={t("welcome.slide", { n: index + 1, total: SLIDES.length })}
-            initial={{ x: direction >= 0 ? 280 : -280, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: direction >= 0 ? -280 : 280, opacity: 0 }}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
             transition={{ type: "spring", stiffness: 300, damping: 32 }}
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}

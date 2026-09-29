@@ -131,15 +131,6 @@
   }
 }
 
-@keyframes train {
-  from {
-    transform: translateX(-700px);
-  }
-  to {
-    transform: translateX(2300px);
-  }
-}
-
 /* Showcase site */
 .site-cursor .site-root,
 .site-cursor .site-root * {
@@ -151,13 +142,4 @@
 }
 .site-root [data-split] .word-mask {
   padding-bottom: 0.08em;
-}
-
-@keyframes loader-train {
-  from {
-    offset-distance: 0%;
-  }
-  to {
-    offset-distance: 100%;
-  }
 }

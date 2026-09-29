@@ -1,15 +1,21 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { mulberry32 } from "@/lib/site/rng";
 import { useSite } from "@/lib/site/store";
-import { TRY_STATION } from "@/lib/site/story";
-import { cn } from "@/lib/utils";
+import { sceneAt, TRAIN_STOP_X, TRY_STATION } from "@/lib/site/story";
+import { initialTrains, MAX_TRAINS, stepTrains, trainGoal, type TrainState } from "@/lib/site/train";
 
 const W = 1600;
 const H = 900;
 const TRACK_Y = 520;
 const STREET_Y = 700;
+/** The illustrated train stops here (its translateX), and the track is drawn at this many px per metre. */
+const TRAIN_STOP_PX = 420;
+const PX_PER_M = 14;
+const trainPx = (x: number) => TRAIN_STOP_PX + (x - TRAIN_STOP_X) * PX_PER_M;
+/** The drawn train spans translateX - 450 to translateX + 144: hidden when none of that is on the canvas. */
+const trainHidden = (x: number) => trainPx(x) + 144 < 0 || trainPx(x) - 450 > W;
 
 type Block = { x: number; w: number; h: number; windows: { x: number; y: number; lit: boolean }[] };
 
@@ -29,6 +35,39 @@ function skyline(seed: number, baseY: number, minH: number, maxH: number, step: 
 }
 
 /**
+ * Runs the same train simulation as the 3D scene (lib/site/train.ts), so the illustrated trains also
+ * pull in, stop and drive off without ever reversing or jumping. Not React state: it runs every frame.
+ */
+function useTrains() {
+  const groups = useRef<(SVGGElement | null)[]>([]);
+  useEffect(() => {
+    let trains: TrainState[] | null = null;
+    let last = performance.now();
+    let raf = 0;
+    const frame = (now: number) => {
+      const s = useSite.getState();
+      // The train's goal doesn't depend on the taxi's pickup point, so any value will do here.
+      const goal = trainGoal(sceneAt(s.storyT, s.demo, 0.5).trainStop);
+      const state = trains
+        ? stepTrains(trains, goal, (now - last) / 1000, { hidden: trainHidden, reducedMotion: s.reducedMotion })
+        : initialTrains(goal, s.reducedMotion);
+      trains = state;
+      last = now;
+      groups.current.forEach((g, i) => {
+        if (!g) return;
+        const t = state[i];
+        g.style.visibility = t ? "visible" : "hidden";
+        if (t) g.style.transform = `translateX(${trainPx(t.x)}px)`;
+      });
+      raf = requestAnimationFrame(frame);
+    };
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return groups;
+}
+
+/**
  * Illustrated version of each chapter, used when WebGL isn't available or the device is too slow.
  * Chapters crossfade; nothing moves when reduced motion is on.
  */
@@ -38,8 +77,8 @@ export function StaticScene() {
   const demo = useSite((s) => s.demo);
   const far = useMemo(() => skyline(3, TRACK_Y - 40, 120, 330, 90), []);
   const near = useMemo(() => skyline(11, STREET_Y - 40, 60, 170, 120), []);
+  const trains = useTrains();
 
-  const stopped = chapter >= 1 && !(chapter === TRY_STATION && !demo.disruption) && chapter !== 6;
   const signalRed = chapter === TRY_STATION ? demo.disruption : chapter >= 1 && chapter < TRY_STATION;
   const taxi = chapter === 3 || (chapter === TRY_STATION && demo.taxiOrdered && !demo.rideDone);
   const taxiX = chapter === 3 ? 760 : 200 + demo.rideProgress * 1100;
@@ -86,18 +125,23 @@ export function StaticScene() {
           <circle cx={7} cy={32} r={7} fill={signalRed ? "#10241a" : "#38e08a"} />
           {signalRed && <circle cx={7} cy={13} r={30} fill="#ff3b3b" opacity={0.18} />}
         </g>
-        {/* Train */}
-        <g
-          className={cn("transition-transform duration-[1400ms] ease-out", !stopped && "motion-safe:animate-[train_14s_linear_infinite]")}
-          style={{ transform: stopped ? "translateX(420px)" : undefined }}
-        >
-          {Array.from({ length: 4 }, (_, i) => (
-            <g key={i} transform={`translate(${-i * 150} ${TRACK_Y - 44})`}>
-              <rect x={0} y={0} width={144} height={42} rx={9} fill="#aeb8c6" />
-              <rect x={10} y={10} width={124} height={12} rx={3} fill="#ffc774" />
-            </g>
-          ))}
-        </g>
+        {/* Trains (positioned every frame by useTrains) */}
+        {Array.from({ length: MAX_TRAINS }, (_, n) => (
+          <g
+            key={n}
+            ref={(g) => {
+              trains.current[n] = g;
+            }}
+            style={{ visibility: "hidden" }}
+          >
+            {Array.from({ length: 4 }, (_, i) => (
+              <g key={i} transform={`translate(${-i * 150} ${TRACK_Y - 44})`}>
+                <rect x={0} y={0} width={144} height={42} rx={9} fill="#aeb8c6" />
+                <rect x={10} y={10} width={124} height={12} rx={3} fill="#ffc774" />
+              </g>
+            ))}
+          </g>
+        ))}
         {/* Street and lamps */}
         <g fill="#0f141f">
           {near.map((b, i) => (
