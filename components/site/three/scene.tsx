@@ -128,10 +128,15 @@ export default function Scene() {
       }}
       aria-hidden
     >
+      {/* No `flipflops`/`onFallback`: drei counts every incline as a flip, so a smooth scene hit the
+          limit after ~12 s and got swapped for the static illustration. Only sustained slowness steps down. */}
       <PerformanceMonitor
-        onDecline={() => useSite.getState().set({ quality: "low" })}
-        flipflops={4}
-        onFallback={() => useSite.getState().set({ quality: "fallback" })}
+        onDecline={({ factor }) => {
+          const s = useSite.getState();
+          // First drop: no postprocessing or reflections. Still too slow at the lowest factor: illustrated fallback.
+          if (s.quality === "high") s.set({ quality: "low" });
+          else if (factor < 0.05) s.set({ quality: "fallback" });
+        }}
       />
       <AdaptiveDpr />
       <SceneController params={params} />
