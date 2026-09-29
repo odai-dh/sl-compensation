@@ -115,19 +115,12 @@ function useStoryScroll() {
 
 function useKeyboard() {
   useEffect(() => {
-    let buffer = "";
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const s = useSite.getState();
       const key = e.key.toLowerCase();
-
-      buffer = (buffer + key).slice(-2);
-      if (buffer === "sl") {
-        s.spawnTrain();
-        buffer = "";
-      }
       if (key === "p") {
         s.set({ presenting: !s.presenting });
         return;

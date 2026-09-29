@@ -12,7 +12,7 @@ import { PayoutBurst, Rain, Sky } from "./atmosphere";
 import { Signal, Street, Streetlights, Track } from "./infrastructure";
 import { Phone } from "./phone";
 import { Taxi } from "./taxi";
-import { SkylineTrains, Train } from "./train";
+import { Train } from "./train";
 import { PICKUP, PICKUP_U, STATIONS_DESKTOP, STATIONS_MOBILE, type Station } from "./world";
 
 const initialParams = (): SceneParams => sceneAt(0, { disruption: false, taxiOrdered: false, rideProgress: 0, rideDone: false }, PICKUP_U);
@@ -149,7 +149,6 @@ export default function Scene() {
         <Streetlights />
         <Signal params={params} />
         <Train params={params} />
-        <SkylineTrains />
         <Taxi params={params} taxiPosition={taxiPosition} />
         <Phone params={params} />
         <Rain params={params} />

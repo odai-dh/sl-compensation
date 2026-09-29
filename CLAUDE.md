@@ -127,7 +127,7 @@ A cinematic, scroll-driven 3D website for the hackathon jury, wrapped around the
   with the ride, amber burst + toast on payout) and a checklist ticks. **Jury mode** plays the whole flow.
 - **Prompt 10 – details:** custom cursor (taxi over the phone), magnetic buttons, tilt cards, evening→midnight
   slider, Web Audio sound design (off by default), live "stranded right now" counter (demo data), intro loader,
-  "sl" easter egg, final section with team (edit `lib/site/content.ts`), tech badges and open questions.
+  final section with team (edit `lib/site/content.ts`), tech badges and open questions.
 - **Prompt 11 – polish:** tab-hidden pause, instancing, disposal, lazy iframe, `?debug=1` FPS meter, illustrated
   fallback for no-WebGL/slow devices (`?static=1` forces it), reduced-motion (no flying, no particles),
   real-DOM text with heading order, OG image, favicon, presentation mode (`P`, arrows).

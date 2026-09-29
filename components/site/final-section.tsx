@@ -89,9 +89,7 @@ export function FinalSection() {
         <footer className="flex flex-col items-center justify-between gap-2 border-t border-white/10 pt-6 text-sm text-[#9aa7bd] md:flex-row">
           <p>Hackathon concept. Not affiliated with SL.</p>
           <p>
-            Press <kbd className="rounded border border-white/20 px-1.5 py-0.5 text-xs">P</kbd> to present · type{" "}
-            <kbd className="rounded border border-white/20 px-1.5 py-0.5 text-xs">s</kbd>{" "}
-            <kbd className="rounded border border-white/20 px-1.5 py-0.5 text-xs">l</kbd> for a surprise
+            Press <kbd className="rounded border border-white/20 px-1.5 py-0.5 text-xs">P</kbd> to present
           </p>
         </footer>
       </div>

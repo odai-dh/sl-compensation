@@ -4,7 +4,6 @@ import { RoundedBox } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { forwardRef, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { lerp } from "@/lib/site/story";
 import { useSite } from "@/lib/site/store";
 import {
   CAR_GAP,
@@ -23,10 +22,10 @@ const TRAIN_Y = TRACK_Y + 0.42 + 1.75;
 /** Below this much of its colour left through the fog, a train can't be made out. */
 const FOG_CUTOFF = 0.02;
 
-type TrainModelProps = { windowMat: THREE.MeshStandardMaterial; bodyColor?: string };
+type TrainModelProps = { windowMat: THREE.MeshStandardMaterial };
 
 /** A commuter train from bevelled boxes: body, lit window band, dark skirt, headlights. */
-export const TrainModel = forwardRef<THREE.Group, TrainModelProps>(function TrainModel({ windowMat, bodyColor = COLORS.trainBody }, ref) {
+const TrainModel = forwardRef<THREE.Group, TrainModelProps>(function TrainModel({ windowMat }, ref) {
   return (
     <group ref={ref}>
       {Array.from({ length: CARRIAGES }, (_, i) => {
@@ -34,7 +33,13 @@ export const TrainModel = forwardRef<THREE.Group, TrainModelProps>(function Trai
         return (
           <group key={i} position={[x, 0, 0]}>
             <RoundedBox args={[CAR_LEN, 2.8, 2.9]} radius={0.35} smoothness={2}>
-              <meshStandardMaterial color={bodyColor} metalness={0.25} roughness={0.5} emissive={bodyColor} emissiveIntensity={0.12} />
+              <meshStandardMaterial
+                color={COLORS.trainBody}
+                metalness={0.25}
+                roughness={0.5}
+                emissive={COLORS.trainBody}
+                emissiveIntensity={0.12}
+              />
             </RoundedBox>
             <mesh position={[0, 0.35, 0]} material={windowMat}>
               <boxGeometry args={[CAR_LEN * 0.9, 0.85, 2.96]} />
@@ -112,32 +117,4 @@ export function Train({ params }: { params: { current: { trainStop: number; flic
       ))}
     </>
   );
-}
-
-/** Easter egg: typing "sl" sends a bonus train across the skyline. */
-export function SkylineTrains() {
-  const trains = useSite((s) => s.extraTrains);
-  return (
-    <>
-      {trains.map((t) => (
-        <SkylineTrain key={t} startedAt={t} />
-      ))}
-    </>
-  );
-}
-
-function SkylineTrain({ startedAt }: { startedAt: number }) {
-  const group = useRef<THREE.Group>(null);
-  const windowMat = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: "#111", emissive: new THREE.Color(COLORS.amber), emissiveIntensity: 3 }),
-    [],
-  );
-  useFrame(() => {
-    const k = (performance.now() - startedAt) / 7000;
-    if (group.current) {
-      group.current.position.set(lerp(-260, 300, k), 38, -48);
-      group.current.visible = k >= 0 && k <= 1;
-    }
-  });
-  return <TrainModel ref={group} windowMat={windowMat} bodyColor="#3b4458" />;
 }

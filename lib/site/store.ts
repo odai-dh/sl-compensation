@@ -34,14 +34,12 @@ type SiteState = {
     appReady: boolean;
     juryRunning: boolean;
   };
-  extraTrains: number[];
   toast: { id: number; text: string } | null;
   setScroll: (storyT: number, scrollProgress: number) => void;
   set: (patch: Partial<Omit<SiteState, "demo">>) => void;
   applyAppEvent: (e: AppEvent) => void;
   resetDemo: () => void;
   setJury: (running: boolean) => void;
-  spawnTrain: () => void;
   showToast: (text: string) => void;
 };
 
@@ -75,7 +73,6 @@ export const useSite = create<SiteState>()((set, get) => ({
   loaded: false,
   cursorOverPhone: false,
   demo: freshDemo(),
-  extraTrains: [],
   toast: null,
 
   setScroll: (storyT, scrollProgress) => {
@@ -132,6 +129,5 @@ export const useSite = create<SiteState>()((set, get) => ({
   },
   resetDemo: () => set({ demo: { ...freshDemo(), appReady: get().demo.appReady } }),
   setJury: (running) => set({ demo: { ...get().demo, juryRunning: running } }),
-  spawnTrain: () => set({ extraTrains: [...get().extraTrains.filter((t) => performance.now() - t < 9000), performance.now()] }),
   showToast: (text) => set({ toast: { id: Date.now(), text } }),
 }));
