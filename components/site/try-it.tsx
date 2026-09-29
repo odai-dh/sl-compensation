@@ -1,7 +1,8 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, LoaderCircle, PlayCircle, RotateCcw, SquareStop, Zap } from "lucide-react";
+import { Check, Expand, LoaderCircle, PlayCircle, RotateCcw, SquareStop, Zap } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/client/api";
 import { readAppEvent, SITE_SOURCE, type SiteMessage } from "@/lib/embed/events";
@@ -51,7 +52,8 @@ export function TryIt() {
   useEffect(() => {
     const fit = () => {
       const mobile = window.innerWidth < 768;
-      const byHeight = (window.innerHeight - (mobile ? 40 : 120)) / (PHONE_H + BEZEL * 2);
+      // On a phone, swipes on the demo scroll the app inside it: leave room around it to scroll the page.
+      const byHeight = (mobile ? window.innerHeight * 0.7 : window.innerHeight - 120) / (PHONE_H + BEZEL * 2);
       const byWidth = (window.innerWidth - 32) / (PHONE_W + BEZEL * 2);
       setScale(Math.max(0.45, Math.min(1, mobile ? Math.min(byHeight, byWidth) : byHeight)));
     };
@@ -183,31 +185,36 @@ export function TryIt() {
           <p className="text-xs text-[#8995ab]">“Play it for me” runs the whole flow by itself. Demo data only – no real money.</p>
         </div>
 
-        <div
-          data-cursor="taxi"
-          className="relative shrink-0"
-          style={{ width: (PHONE_W + BEZEL * 2) * scale, height: (PHONE_H + BEZEL * 2) * scale }}
-        >
+        <div className="flex shrink-0 flex-col items-center gap-4">
           <div
-            className="absolute left-0 top-0 origin-top-left rounded-[3.4rem] bg-gradient-to-b from-[#2b3242] to-[#11151f] shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_40px_120px_rgba(0,0,0,0.7),0_0_80px_rgba(255,176,32,0.18)]"
-            style={{ width: PHONE_W + BEZEL * 2, height: PHONE_H + BEZEL * 2, padding: BEZEL, transform: `scale(${scale})` }}
+            data-cursor="taxi"
+            className="relative shrink-0"
+            style={{ width: (PHONE_W + BEZEL * 2) * scale, height: (PHONE_H + BEZEL * 2) * scale }}
           >
-            <div className="relative size-full overflow-hidden rounded-[2.6rem] bg-[#0b0f14]">
-              {src ? (
-                <iframe
-                  ref={frame}
-                  src={src}
-                  title="Vidare app – live demo"
-                  width={PHONE_W}
-                  height={PHONE_H}
-                  className="block border-0"
-                />
-              ) : (
-                <div className="flex size-full items-center justify-center text-sm text-[#9aa7bd]">Loading the app…</div>
-              )}
-              <div aria-hidden className="pointer-events-none absolute left-1/2 top-2.5 h-7 w-28 -translate-x-1/2 rounded-full bg-black" />
+            <div
+              className="absolute left-0 top-0 origin-top-left rounded-[3.4rem] bg-gradient-to-b from-[#2b3242] to-[#11151f] shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_40px_120px_rgba(0,0,0,0.7),0_0_80px_rgba(255,176,32,0.18)]"
+              style={{ width: PHONE_W + BEZEL * 2, height: PHONE_H + BEZEL * 2, padding: BEZEL, transform: `scale(${scale})` }}
+            >
+              <div className="relative size-full overflow-hidden rounded-[2.6rem] bg-[#0b0f14]">
+                {src ? (
+                  <iframe
+                    ref={frame}
+                    src={src}
+                    title="Vidare app – live demo"
+                    width={PHONE_W}
+                    height={PHONE_H}
+                    className="block border-0"
+                  />
+                ) : (
+                  <div className="flex size-full items-center justify-center text-sm text-[#9aa7bd]">Loading the app…</div>
+                )}
+                <div aria-hidden className="pointer-events-none absolute left-1/2 top-2.5 h-7 w-28 -translate-x-1/2 rounded-full bg-black" />
+              </div>
             </div>
           </div>
+          <Link href="/app" className={cn(siteButton.ghost, "h-10 px-4 text-sm md:hidden")}>
+            <Expand className="size-4" aria-hidden /> Open it full screen
+          </Link>
         </div>
       </div>
     </section>
