@@ -115,7 +115,9 @@ A cinematic, scroll-driven 3D website for the hackathon jury, wrapped around the
 - **Prompt 8 – scroll story:** five chapters (on your way home → the train stops → your right → Vidare takes
   over → SL pays us). The camera flies a Catmull-Rom spline through stations; every visual is a pure function of
   `storyT` (`lib/site/story.ts`, unit tested), and the chapter text is one paused GSAP timeline seeked to `storyT`,
-  so any scroll speed or direction gives the same frame. Numbers come from `lib/core/sl-rules.ts`. Side dots
+  so any scroll speed or direction gives the same frame. Exception: the train is a small simulation
+  (`lib/site/train.ts`, shared by the 3D scene and the fallback) – the story only sets its goal (run/stop), so it
+  never reverses or jumps in view. Numbers come from `lib/core/sl-rules.ts`. Side dots
   navigate chapters. Mobile uses a simpler camera path, fewer buildings and no postprocessing.
 - **Prompt 9 – live demo:** the "Try it" section shows `/app?embed=1` in a CSS phone. Typed, Zod-validated,
   origin-checked `postMessage` events (`lib/embed/events.ts`): app → site `disruptionDetected`,

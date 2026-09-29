@@ -131,15 +131,6 @@
   }
 }
 
-@keyframes train {
-  from {
-    transform: translateX(-700px);
-  }
-  to {
-    transform: translateX(2300px);
-  }
-}
-
 /* Showcase site */
 .site-cursor .site-root,
 .site-cursor .site-root * {

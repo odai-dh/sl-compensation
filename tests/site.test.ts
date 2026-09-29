@@ -6,10 +6,10 @@ import {
   currentStation,
   PICKUP_FRACTION,
   sceneAt,
+  sceneDim,
   STATIONS,
   storyTFromScroll,
   taxiUFromRide,
-  TRAIN_STOP_X,
   TRY_STATION,
   type DemoState,
 } from "@/lib/site/story";
@@ -77,14 +77,13 @@ describe("scene params", () => {
 
   it("ch1: train cruises, signal green", () => {
     const s = sceneAt(0.2, idle, 0.5);
-    expect(s.trainScripted).toBe(0);
+    expect(s.trainStop).toBe(0);
     expect(s.signalRed).toBe(false);
   });
 
   it("ch2: the train stops, the signal turns red and the rain gets heavier", () => {
     const s = sceneAt(1.5, idle, 0.5);
-    expect(s.trainScripted).toBe(1);
-    expect(s.trainScriptX).toBeCloseTo(TRAIN_STOP_X);
+    expect(s.trainStop).toBe(1);
     expect(s.signalRed).toBe(true);
     expect(s.rain).toBeGreaterThan(sceneAt(0.2, idle, 0.5).rain);
   });
@@ -106,11 +105,22 @@ describe("scene params", () => {
     expect(sceneAt(TRY_STATION + 0.3, riding, 0.5).cameraFollow).toBe(0);
   });
 
+  it("dims the scene without ever popping at a section boundary", () => {
+    let prev = sceneDim(0);
+    for (let t = 0.001; t <= STATIONS.length - 1; t += 0.001) {
+      const d = sceneDim(t);
+      expect(Math.abs(d - prev)).toBeLessThan(0.01);
+      prev = d;
+    }
+    expect(sceneDim(TRY_STATION + 0.5)).toBe(0);
+    expect(sceneDim(STATIONS.length - 1)).toBe(0.5);
+  });
+
   it("try it: follows the demo events", () => {
     expect(sceneAt(TRY_STATION + 0.3, idle, 0.5).signalRed).toBe(false);
     const stuck = sceneAt(TRY_STATION + 0.3, { ...idle, disruption: true }, 0.5);
     expect(stuck.signalRed).toBe(true);
-    expect(stuck.trainScripted).toBe(1);
+    expect(stuck.trainStop).toBe(1);
     const riding = sceneAt(TRY_STATION + 0.3, { disruption: true, taxiOrdered: true, rideProgress: PICKUP_FRACTION, rideDone: false }, 0.5);
     expect(riding.taxiVisible).toBe(true);
     expect(riding.taxiU).toBeCloseTo(0.5);

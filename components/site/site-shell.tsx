@@ -165,7 +165,7 @@ function useSound() {
       if (now - last > 200) {
         last = now;
         const p = sceneAt(s.storyT, s.demo, 0.5);
-        engine.setAmbience(p.rain, 1 - p.trainScripted);
+        engine.setAmbience(p.rain, 1 - p.trainStop);
       }
     });
   }, []);
